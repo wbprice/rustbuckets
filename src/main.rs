@@ -57,7 +57,7 @@ impl Board {
         for _ in 0..self.height {
             for _ in 0..self.width {
                 // Print blue waters to start
-                print!("{}\u{2001}\u{2001}{}", color::Bg(color::Blue), style::Reset);
+                print!("{}\u{3000}{}", color::Bg(color::Blue), style::Reset);
             }
             print!("\n");
         }
