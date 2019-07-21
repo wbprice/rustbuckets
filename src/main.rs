@@ -1,11 +1,13 @@
 use termion::{color, style};
 use termion::event::Key;
 use termion::raw::{IntoRawMode, RawTerminal};
+use termion::cursor::Goto;
 use std::io::{Write, stdout, Stdout, stdin};
 use termion::input::TermRead;
 
 struct Game {
-    boards: Vec<Board>
+    boards: Vec<Board>,
+    cursor: Coordinates
 }
 
 impl Game {
@@ -14,6 +16,10 @@ impl Game {
         let width = 8;
 
         Game {
+            cursor: Coordinates {
+                x: 1,
+                y: 2
+            },
             boards: vec![
                 Board::new(Faction::Blue, height, width),
                 Board::new(Faction::Red, height, width)
@@ -27,8 +33,33 @@ impl Game {
         }
     }
 
+    fn render_cursor(&self, stdout: &mut RawTerminal<Stdout>) {
+        write!(stdout, "{}{} {}",
+            Goto(self.cursor.x as u16, self.cursor.y as u16),
+            color::Bg(color::Red),
+            style::Reset
+        ).unwrap();
+    }
+
+    fn render_title(&self, stdout: &mut RawTerminal<Stdout>) {
+        write!(
+            stdout,
+            "{}Rustbuckets v0.1.0{}\n\r",
+            color::Fg(color::Red),
+            style::Reset
+        ).unwrap();
+    }
+
     fn render(&self, mut stdout: &mut RawTerminal<Stdout>) {
+        // Clear everything, hide the cursor
+        write!(stdout, "{}{}{}", 
+            termion::clear::All,
+            Goto(1,1),
+            termion::cursor::Hide
+        ).unwrap();
+        self.render_title(&mut stdout);
         self.render_boards(&mut stdout);
+        self.render_cursor(&mut stdout);
     }
 
     fn on_keypress(&self, stdout: &mut RawTerminal<Stdout>) {
@@ -66,6 +97,12 @@ struct Board {
     width: i8,
 }
 
+#[derive(Debug)]
+struct Coordinates {
+    x: i8,
+    y: i8
+}
+
 impl Board {
     fn new(faction: Faction, width: i8, height: i8) -> Board {
         Board {
@@ -90,11 +127,7 @@ impl Board {
 }
 
 fn main() {
-    println!(
-        "{}Rustbuckets v0.1.0{}",
-        color::Fg(color::Red),
-        style::Reset
-    );
+
 
     let game = Game::new();
     game.start();
