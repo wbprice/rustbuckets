@@ -41,6 +41,35 @@ impl Game {
         ).unwrap();
     }
 
+    fn move_cursor(mut self, heading: Heading) {
+        match heading {
+            Heading::North => {
+                self.cursor = Coordinates {
+                    x: self.cursor.x,
+                    y: self.cursor.y - 1
+                }
+            },
+            Heading::East => {
+                self.cursor = Coordinates {
+                    x: self.cursor.x + 1,
+                    y: self.cursor.y
+                }
+            },
+            Heading::West => {
+                self.cursor = Coordinates {
+                    x: self.cursor.x - 1,
+                    y: self.cursor.y
+                }
+            },
+            Heading::South => {
+                self.cursor = Coordinates {
+                    x: self.cursor.x,
+                    y: self.cursor.y + 1
+                }
+            }
+        }
+    }
+
     fn render_title(&self, stdout: &mut RawTerminal<Stdout>) {
         write!(
             stdout,
@@ -62,25 +91,36 @@ impl Game {
         self.render_cursor(&mut stdout);
     }
 
-    fn on_keypress(&self, stdout: &mut RawTerminal<Stdout>) {
-        let stdin = stdin();
-        write!(stdout, "{}", termion::cursor::Hide).unwrap();
-        stdout.flush().unwrap();
-
-        for c in stdin.keys() {
-            match c.unwrap() {
-                Key::Char('q') => break,
-                _ => {}
-            }
-        }
-        stdout.flush().unwrap();
-    }
-
-    fn start(&self) {
+    fn start(self) {
         let mut stdout = stdout().into_raw_mode().unwrap();
+        let stdin = stdin();
 
         self.render(&mut stdout);
-        self.on_keypress(&mut stdout);
+
+        // Handle user inputs and render interface
+        for c in stdin.keys() {
+            match c.unwrap() {
+                Key::Char('q') => {
+                    write!(stdout, "{}", style::Reset).unwrap();
+                    break;
+                },
+                Key::Char('w') => {
+                    self.move_cursor(Heading::North);
+                }, 
+                Key::Char('a') => {
+                    self.move_cursor(Heading::East);
+                },
+                Key::Char('s') => {
+                    self.move_cursor(Heading::West);
+                },
+                Key::Char('d') => {
+                    self.move_cursor(Heading::South);
+                },
+                _ => {}
+            }
+            self.render(&mut stdout);
+        }
+        stdout.flush().unwrap();
     }
 }
 
@@ -101,6 +141,13 @@ struct Board {
 struct Coordinates {
     x: i8,
     y: i8
+}
+
+enum Heading {
+    North,
+    East,
+    West,
+    South
 }
 
 impl Board {
