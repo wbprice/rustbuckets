@@ -1,8 +1,8 @@
 use termion::{color, style};
-use termion::cursor::Goto;
+use termion::event::Key;
 use termion::raw::{IntoRawMode, RawTerminal};
-use std::io::{Write, stdout, Stdout};
-
+use std::io::{Write, stdout, Stdout, stdin};
+use termion::input::TermRead;
 
 struct Game {
     should_exit: bool,
@@ -35,10 +35,22 @@ impl Game {
         self.render_boards(&mut stdout);
     }
 
+    fn on_keypress(&self, stdout: &mut RawTerminal<Stdout>) {
+        let stdin = stdin();
+        for c in stdin.keys() {
+            match c.unwrap() {
+                Key::Char('q') => break,
+                _ => {}
+            }
+        }
+        stdout.flush().unwrap();
+    }
+
     fn start(&self) {
         let mut stdout = stdout().into_raw_mode().unwrap();
 
         self.render(&mut stdout);
+        self.on_keypress(&mut stdout);
     }
 }
 
