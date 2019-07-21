@@ -5,9 +5,7 @@ use std::io::{Write, stdout, Stdout, stdin};
 use termion::input::TermRead;
 
 struct Game {
-    should_exit: bool,
-    turns: i8,
-    boards: Vec<Board>,
+    boards: Vec<Board>
 }
 
 impl Game {
@@ -15,13 +13,11 @@ impl Game {
         let height = 8;
         let width = 8;
 
-        let blue_board = Board::new(Faction::Blue, height, width);
-        let red_board = Board::new(Faction::Red, height, width);
-
         Game {
-            should_exit: false,
-            turns: 0,
-            boards: vec![blue_board, red_board],
+            boards: vec![
+                Board::new(Faction::Blue, height, width),
+                Board::new(Faction::Red, height, width)
+            ]
         }
     }
 
@@ -37,6 +33,9 @@ impl Game {
 
     fn on_keypress(&self, stdout: &mut RawTerminal<Stdout>) {
         let stdin = stdin();
+        write!(stdout, "{}", termion::cursor::Hide).unwrap();
+        stdout.flush().unwrap();
+
         for c in stdin.keys() {
             match c.unwrap() {
                 Key::Char('q') => break,
