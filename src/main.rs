@@ -1,4 +1,5 @@
 use termion::{color, style};
+use termion::cursor::Goto;
 use termion::raw::{IntoRawMode, RawTerminal};
 use std::io::{Write, stdout, Stdout};
 
@@ -24,22 +25,20 @@ impl Game {
         }
     }
 
-    fn render_boards(&self, stdout: &mut RawTerminal<Stdout>) {
+    fn render_boards(&self, mut stdout: &mut RawTerminal<Stdout>) {
         for board in self.boards.iter() {
             board.render(&mut stdout);
         }
     }
 
-    fn render(&self, stdout: &mut RawTerminal<Stdout>) {
+    fn render(&self, mut stdout: &mut RawTerminal<Stdout>) {
         self.render_boards(&mut stdout);
     }
 
     fn start(&self) {
         let mut stdout = stdout().into_raw_mode().unwrap();
 
-        while self.should_exit == false {
-            self.render(&mut stdout);
-        }
+        self.render(&mut stdout);
     }
 }
 
@@ -66,14 +65,16 @@ impl Board {
     }
 
     fn render(&self, stdout: &mut RawTerminal<Stdout>) {
-        for _ in 0..self.height {
-            for _ in 0..self.width {
+        for _ in 1..self.height + 1 {
+            for _ in 1..self.width + 1 {
                 // Print blue waters to start
-                write!(stdout, "{}\u{3000}{}", color::Bg(color::Blue), style::Reset).unwrap();
+                write!(stdout, "{}\u{3000}{}", 
+                    color::Bg(color::Blue), 
+                    style::Reset).unwrap();
             }
-            write!(stdout, "\n").unwrap();
+            write!(stdout, "\n\r").unwrap();
         }
-        write!(stdout, "\n").unwrap();
+        write!(stdout, "\n\r").unwrap();
     }
 }
 
