@@ -41,7 +41,7 @@ impl Game {
         ).unwrap();
     }
 
-    fn move_cursor(mut self, heading: Heading) {
+    fn move_cursor(&self, heading: Heading) {
         match heading {
             Heading::North => {
                 self.cursor = Coordinates {
@@ -91,10 +91,9 @@ impl Game {
         self.render_cursor(&mut stdout);
     }
 
-    fn start(self) {
+    fn start(&self) {
         let mut stdout = stdout().into_raw_mode().unwrap();
         let stdin = stdin();
-
         self.render(&mut stdout);
 
         // Handle user inputs and render interface
@@ -118,7 +117,6 @@ impl Game {
                 },
                 _ => {}
             }
-            self.render(&mut stdout);
         }
         stdout.flush().unwrap();
     }
