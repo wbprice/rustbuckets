@@ -31,7 +31,7 @@ struct Cursor {
     base: Coordinates,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 struct Attack {
     coordinates: Coordinates,
     base: Coordinates,
@@ -61,15 +61,17 @@ impl Attack {
 
         write!(
             stdout,
-            "{}{}{}",
+            "{}{}{}{}{}",
             Goto(self.coordinates.x, self.coordinates.y),
+            color::Fg(color::White),
+            color::Bg(color::Black),
             symbol,
             style::Reset
         ).unwrap();
     }
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 enum AttackResults {
     Hit,
     Miss
@@ -224,7 +226,7 @@ fn main() {
     let red_board = Board::new(Faction::Blue, 8, 8, 1, 2);
     let blue_board = Board::new(Faction::Red, 8, 8, 1, 11);
     let mut cursor = Cursor::new(1, 2);
-    let mut attacks : Vec<Attack> = vec![];
+    let mut attacks : Vec<Attack> = Vec::new();
     let mut info = Label::new(1, 19, "Hello there".to_string());
     let title = Label::new(1, 1, "Rustbuckets v1.0".to_string());
 
@@ -233,7 +235,7 @@ fn main() {
     cursor.render(&mut stdout);
     info.render(&mut stdout);
     title.render(&mut stdout);
-    for attack in attacks {
+    for attack in attacks.clone() {
         attack.render(&mut stdout);
     }
 
@@ -259,9 +261,7 @@ fn main() {
                 cursor = cursor.on_move(Heading::East);
             },
             Key::Char('f') => {
-                attacks.push(
-                    Attack::new(cursor.coordinates.x, cursor.coordinates.y)
-                );
+                attacks.push(Attack::new(cursor.coordinates.x, cursor.coordinates.y));
             }
             _ => {}
         }
@@ -278,6 +278,9 @@ fn main() {
                 cursor.coordinates.y - cursor.base.y
             ),
         );
+        for attack in attacks.clone() {
+            attack.render(&mut stdout);
+        }
         info.render(&mut stdout);
         stdout.flush().unwrap();
     }
