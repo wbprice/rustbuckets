@@ -28,7 +28,7 @@ struct Coordinates {
 #[derive(Debug, Copy, Clone)]
 struct Cursor {
     coordinates: Coordinates,
-    base: Coordinates
+    base: Coordinates,
 }
 
 enum Heading {
@@ -42,7 +42,7 @@ impl Cursor {
     fn new(x: u16, y: u16) -> Cursor {
         Cursor {
             coordinates: Coordinates { x, y },
-            base: Coordinates { x, y }
+            base: Coordinates { x, y },
         }
     }
 
@@ -55,7 +55,7 @@ impl Cursor {
                             x: self.coordinates.x,
                             y: self.coordinates.y - 1,
                         },
-                        base: self.base
+                        base: self.base,
                     }
                 } else {
                     self
@@ -68,7 +68,7 @@ impl Cursor {
                             x: self.coordinates.x + 1,
                             y: self.coordinates.y,
                         },
-                        base: self.base
+                        base: self.base,
                     }
                 } else {
                     self
@@ -81,7 +81,7 @@ impl Cursor {
                             x: self.coordinates.x - 1,
                             y: self.coordinates.y,
                         },
-                        base: self.base
+                        base: self.base,
                     }
                 } else {
                     self
@@ -94,7 +94,7 @@ impl Cursor {
                             x: self.coordinates.x,
                             y: self.coordinates.y + 1,
                         },
-                        base: self.base
+                        base: self.base,
                     }
                 } else {
                     self
@@ -219,7 +219,11 @@ fn main() {
         info = Label::new(
             1,
             19,
-            format!("({},{})", cursor.coordinates.x - cursor.base.x, cursor.coordinates.y - cursor.base.y),
+            format!(
+                "({},{})",
+                cursor.coordinates.x - cursor.base.x,
+                cursor.coordinates.y - cursor.base.y
+            ),
         );
         info.render(&mut stdout);
 
