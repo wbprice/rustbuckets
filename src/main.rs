@@ -18,13 +18,13 @@ struct Board {
     width: u16,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 struct Coordinates {
     x: u16,
     y: u16
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 struct Cursor {
     coordinates: Coordinates
 }
@@ -76,9 +76,9 @@ impl Cursor {
     }
 
     fn render(self, stdout: &mut RawTerminal<Stdout>) {
-        write!(stdout, "{}{}{}",
+        write!(stdout, "{}{}Q{}",
             Goto(self.coordinates.x, self.coordinates.y),
-            color::Bg(color::Red),
+            color::Fg(color::Red),
             style::Reset
         ).unwrap()
     }
@@ -119,9 +119,42 @@ fn main() {
 
     let red_board = Board::new(Faction::Blue, 8, 8);
     let blue_board = Board::new(Faction::Red, 8, 8);
-    let cursor = Cursor::new(1, 1);
+    let mut cursor = Cursor::new(1, 1);
 
-    red_board.render(&mut stdout);
-    blue_board.render(&mut stdout);
+    // red_board.render(&mut stdout);
+    // blue_board.render(&mut stdout);
     cursor.render(&mut stdout);
+
+    // Handle user inputs and render interface
+    for c in stdin.keys() {
+        match c.unwrap() {
+            Key::Char('q') => {
+                write!(stdout, "{}", style::Reset).unwrap();
+                break;
+            },
+            Key::Char('w') => {
+                if cursor.coordinates.x > 1 {
+                    cursor = cursor.on_move(Heading::North);
+                }
+            }, 
+            Key::Char('a') => {
+                if cursor.coordinates.y > 1 {
+                    cursor = cursor.on_move(Heading::West);
+                }
+            },
+            Key::Char('s') => {
+                if cursor.coordinates.y < 8 {
+                    cursor = cursor.on_move(Heading::South);
+                }
+            },
+            Key::Char('d') => {
+                if cursor.coordinates.x < 8 {
+                    cursor = cursor.on_move(Heading::East);
+                }
+            },
+            _ => {}
+        }
+        cursor.render(&mut stdout);
+    }
+    stdout.flush().unwrap();
 }
