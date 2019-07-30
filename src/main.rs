@@ -76,9 +76,10 @@ impl Cursor {
     fn render(self, stdout: &mut RawTerminal<Stdout>) {
         write!(
             stdout,
-            "{}{}Q{}x: {}, y: {}{}",
+            "{}{}{}[ ]{}({}, {}){}",
             Goto(self.coordinates.x, self.coordinates.y),
-            color::Fg(color::Red),
+            color::Bg(color::Blue),
+            color::Fg(color::White),
             Goto(1, 18),
             self.coordinates.x,
             self.coordinates.y,
