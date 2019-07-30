@@ -76,9 +76,12 @@ impl Cursor {
     }
 
     fn render(self, stdout: &mut RawTerminal<Stdout>) {
-        write!(stdout, "{}{}Q{}",
+        write!(stdout, "{}{}Q{}x: {}, y: {}{}",
             Goto(self.coordinates.x, self.coordinates.y),
             color::Fg(color::Red),
+            Goto(1, 18),
+            self.coordinates.x,
+            self.coordinates.y,
             style::Reset
         ).unwrap()
     }
@@ -121,8 +124,8 @@ fn main() {
     let blue_board = Board::new(Faction::Red, 8, 8);
     let mut cursor = Cursor::new(1, 1);
 
-    // red_board.render(&mut stdout);
-    // blue_board.render(&mut stdout);
+    red_board.render(&mut stdout);
+    blue_board.render(&mut stdout);
     cursor.render(&mut stdout);
 
     // Handle user inputs and render interface
@@ -133,12 +136,12 @@ fn main() {
                 break;
             },
             Key::Char('w') => {
-                if cursor.coordinates.x > 1 {
+                if cursor.coordinates.y > 1 {
                     cursor = cursor.on_move(Heading::North);
                 }
             }, 
             Key::Char('a') => {
-                if cursor.coordinates.y > 1 {
+                if cursor.coordinates.x > 1 {
                     cursor = cursor.on_move(Heading::West);
                 }
             },
@@ -154,7 +157,8 @@ fn main() {
             },
             _ => {}
         }
+
         cursor.render(&mut stdout);
+        stdout.flush().unwrap();
     }
-    stdout.flush().unwrap();
 }
