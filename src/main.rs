@@ -158,7 +158,10 @@ fn main() {
             _ => {}
         }
 
+        red_board.render(&mut stdout);
+        blue_board.render(&mut stdout);
         cursor.render(&mut stdout);
+
         stdout.flush().unwrap();
     }
 }
