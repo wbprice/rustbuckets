@@ -46,30 +46,54 @@ impl Cursor {
 
     fn on_move(self, heading: Heading) -> Cursor {
         match heading {
-            Heading::North => Cursor {
-                coordinates: Coordinates {
-                    x: self.coordinates.x,
-                    y: self.coordinates.y - 1,
-                },
-            },
-            Heading::East => Cursor {
-                coordinates: Coordinates {
-                    x: self.coordinates.x + 1,
-                    y: self.coordinates.y,
-                },
-            },
-            Heading::West => Cursor {
-                coordinates: Coordinates {
-                    x: self.coordinates.x - 1,
-                    y: self.coordinates.y,
-                },
-            },
-            Heading::South => Cursor {
-                coordinates: Coordinates {
-                    x: self.coordinates.x,
-                    y: self.coordinates.y + 1,
-                },
-            },
+            Heading::North => {
+                if self.coordinates.y > 2 {
+                    Cursor {
+                        coordinates: Coordinates {
+                            x: self.coordinates.x,
+                            y: self.coordinates.y - 1,
+                        },
+                    }
+                } else {
+                    self
+                }
+            }
+            Heading::East => {
+                if self.coordinates.x < 8 {
+                    Cursor {
+                        coordinates: Coordinates {
+                            x: self.coordinates.x + 1,
+                            y: self.coordinates.y,
+                        },
+                    }
+                } else {
+                    self
+                }
+            }
+            Heading::West => {
+                if self.coordinates.x > 1 {
+                    Cursor {
+                        coordinates: Coordinates {
+                            x: self.coordinates.x - 1,
+                            y: self.coordinates.y,
+                        },
+                    }
+                } else {
+                    self
+                }
+            }
+            Heading::South => {
+                if self.coordinates.y < 9 {
+                    Cursor {
+                        coordinates: Coordinates {
+                            x: self.coordinates.x,
+                            y: self.coordinates.y + 1,
+                        },
+                    }
+                } else {
+                    self
+                }
+            }
         }
     }
 
@@ -169,24 +193,16 @@ fn main() {
                 break;
             }
             Key::Char('w') => {
-                if cursor.coordinates.y > 1 {
-                    cursor = cursor.on_move(Heading::North);
-                }
+                cursor = cursor.on_move(Heading::North);
             }
             Key::Char('a') => {
-                if cursor.coordinates.x > 1 {
-                    cursor = cursor.on_move(Heading::West);
-                }
+                cursor = cursor.on_move(Heading::West);
             }
             Key::Char('s') => {
-                if cursor.coordinates.y < 8 {
-                    cursor = cursor.on_move(Heading::South);
-                }
+                cursor = cursor.on_move(Heading::South);
             }
             Key::Char('d') => {
-                if cursor.coordinates.x < 8 {
-                    cursor = cursor.on_move(Heading::East);
-                }
+                cursor = cursor.on_move(Heading::East);
             }
             _ => {}
         }
