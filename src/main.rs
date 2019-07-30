@@ -49,7 +49,7 @@ impl Cursor {
     fn on_move(self, heading: Heading) -> Cursor {
         match heading {
             Heading::North => {
-                if self.coordinates.y > 2 {
+                if self.coordinates.y - self.base.y > 0 {
                     Cursor {
                         coordinates: Coordinates {
                             x: self.coordinates.x,
@@ -62,7 +62,7 @@ impl Cursor {
                 }
             }
             Heading::East => {
-                if self.coordinates.x < 8 {
+                if self.coordinates.x - self.base.x < 7 {
                     Cursor {
                         coordinates: Coordinates {
                             x: self.coordinates.x + 1,
@@ -75,7 +75,7 @@ impl Cursor {
                 }
             }
             Heading::West => {
-                if self.coordinates.x > 1 {
+                if self.coordinates.x - self.base.x > 0 {
                     Cursor {
                         coordinates: Coordinates {
                             x: self.coordinates.x - 1,
@@ -88,7 +88,7 @@ impl Cursor {
                 }
             }
             Heading::South => {
-                if self.coordinates.y < 9 {
+                if self.coordinates.y - self.base.y < 7 {
                     Cursor {
                         coordinates: Coordinates {
                             x: self.coordinates.x,
@@ -219,7 +219,7 @@ fn main() {
         info = Label::new(
             1,
             19,
-            format!("({},{})", cursor.coordinates.x - cursor.base.x, cursor.coordinates.y - cursor.base.x),
+            format!("({},{})", cursor.coordinates.x - cursor.base.x, cursor.coordinates.y - cursor.base.y),
         );
         info.render(&mut stdout);
 
