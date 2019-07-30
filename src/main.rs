@@ -37,7 +37,6 @@ enum Heading {
     South,
 }
 
-
 impl Cursor {
     fn new(x: u16, y: u16) -> Cursor {
         Cursor {
@@ -81,7 +80,8 @@ impl Cursor {
             Goto(self.coordinates.x, self.coordinates.y),
             color::Bg(color::Blue),
             style::Reset
-        ).unwrap()
+        )
+        .unwrap()
     }
 }
 
@@ -110,27 +110,27 @@ impl Board {
 
 struct Label {
     origin: Coordinates,
-    content: String
+    content: String,
 }
 
 impl Label {
     fn new(x: u16, y: u16, content: String) -> Label {
         Label {
-            origin: Coordinates {
-                x,
-                y
-            },
-            content
+            origin: Coordinates { x, y },
+            content,
         }
     }
 
     fn render(&self, stdout: &mut RawTerminal<Stdout>) {
-        write!(stdout, "{}{}{}{}",
+        write!(
+            stdout,
+            "{}{}{}{}",
             Goto(self.origin.x, self.origin.y),
             color::Fg(color::White),
             self.content,
             style::Reset
-        ).unwrap();
+        )
+        .unwrap();
     }
 }
 
@@ -194,7 +194,11 @@ fn main() {
         red_board.render(&mut stdout);
         blue_board.render(&mut stdout);
         cursor.render(&mut stdout);
-        info = Label::new(1, 19, format!("({},{})", cursor.coordinates.x, cursor.coordinates.y));
+        info = Label::new(
+            1,
+            19,
+            format!("({},{})", cursor.coordinates.x, cursor.coordinates.y),
+        );
         info.render(&mut stdout);
 
         stdout.flush().unwrap();
