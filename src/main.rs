@@ -37,6 +37,7 @@ enum Heading {
     South,
 }
 
+
 impl Cursor {
     fn new(x: u16, y: u16) -> Cursor {
         Cursor {
@@ -76,16 +77,11 @@ impl Cursor {
     fn render(self, stdout: &mut RawTerminal<Stdout>) {
         write!(
             stdout,
-            "{}{}{}[ ]{}({}, {}){}",
+            "{}{}[ ]{}",
             Goto(self.coordinates.x, self.coordinates.y),
             color::Bg(color::Blue),
-            color::Fg(color::White),
-            Goto(1, 18),
-            self.coordinates.x,
-            self.coordinates.y,
             style::Reset
-        )
-        .unwrap()
+        ).unwrap()
     }
 }
 
@@ -112,6 +108,32 @@ impl Board {
     }
 }
 
+struct Label {
+    origin: Coordinates,
+    content: String
+}
+
+impl Label {
+    fn new(x: u16, y: u16, content: String) -> Label {
+        Label {
+            origin: Coordinates {
+                x,
+                y
+            },
+            content
+        }
+    }
+
+    fn render(&self, stdout: &mut RawTerminal<Stdout>) {
+        write!(stdout, "{}{}{}{}",
+            Goto(self.origin.x, self.origin.y),
+            color::Fg(color::White),
+            self.content,
+            style::Reset
+        ).unwrap();
+    }
+}
+
 fn main() {
     let mut stdout = stdout().into_raw_mode().unwrap();
     let stdin = stdin();
@@ -127,11 +149,17 @@ fn main() {
 
     let red_board = Board::new(Faction::Blue, 8, 8, 1, 2);
     let blue_board = Board::new(Faction::Red, 8, 8, 1, 11);
-    let mut cursor = Cursor::new(1, 1);
+    let mut cursor = Cursor::new(1, 2);
+    let mut info = Label::new(1, 19, "Hello there".to_string());
+    let title = Label::new(1, 1, "Rustbuckets v1.0".to_string());
 
     red_board.render(&mut stdout);
     blue_board.render(&mut stdout);
     cursor.render(&mut stdout);
+    info.render(&mut stdout);
+    title.render(&mut stdout);
+
+    stdout.flush().unwrap();
 
     // Handle user inputs and render interface
     for c in stdin.keys() {
@@ -166,6 +194,8 @@ fn main() {
         red_board.render(&mut stdout);
         blue_board.render(&mut stdout);
         cursor.render(&mut stdout);
+        info = Label::new(1, 19, format!("({},{})", cursor.coordinates.x, cursor.coordinates.y));
+        info.render(&mut stdout);
 
         stdout.flush().unwrap();
     }
