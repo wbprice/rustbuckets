@@ -5,123 +5,6 @@ use termion::cursor::Goto;
 use std::io::{Write, stdout, Stdout, stdin};
 use termion::input::TermRead;
 
-struct Game {
-    boards: Vec<Board>,
-    cursor: Coordinates
-}
-
-impl Game {
-    fn new() -> Game {
-        let height = 8;
-        let width = 8;
-
-        Game {
-            cursor: Coordinates {
-                x: 1,
-                y: 2
-            },
-            boards: vec![
-                Board::new(Faction::Blue, height, width),
-                Board::new(Faction::Red, height, width)
-            ]
-        }
-    }
-
-    fn render_boards(&self, mut stdout: &mut RawTerminal<Stdout>) {
-        for board in self.boards.iter() {
-            board.render(&mut stdout);
-        }
-    }
-
-    fn render_cursor(&self, stdout: &mut RawTerminal<Stdout>) {
-        write!(stdout, "{}{} {}",
-            Goto(self.cursor.x as u16, self.cursor.y as u16),
-            color::Bg(color::Red),
-            style::Reset
-        ).unwrap();
-    }
-
-    fn move_cursor(&self, heading: Heading) {
-        match heading {
-            Heading::North => {
-                self.cursor = Coordinates {
-                    x: self.cursor.x,
-                    y: self.cursor.y - 1
-                }
-            },
-            Heading::East => {
-                self.cursor = Coordinates {
-                    x: self.cursor.x + 1,
-                    y: self.cursor.y
-                }
-            },
-            Heading::West => {
-                self.cursor = Coordinates {
-                    x: self.cursor.x - 1,
-                    y: self.cursor.y
-                }
-            },
-            Heading::South => {
-                self.cursor = Coordinates {
-                    x: self.cursor.x,
-                    y: self.cursor.y + 1
-                }
-            }
-        }
-    }
-
-    fn render_title(&self, stdout: &mut RawTerminal<Stdout>) {
-        write!(
-            stdout,
-            "{}Rustbuckets v0.1.0{}\n\r",
-            color::Fg(color::Red),
-            style::Reset
-        ).unwrap();
-    }
-
-    fn render(&self, mut stdout: &mut RawTerminal<Stdout>) {
-        // Clear everything, hide the cursor
-        write!(stdout, "{}{}{}", 
-            termion::clear::All,
-            Goto(1,1),
-            termion::cursor::Hide
-        ).unwrap();
-        self.render_title(&mut stdout);
-        self.render_boards(&mut stdout);
-        self.render_cursor(&mut stdout);
-    }
-
-    fn start(&self) {
-        let mut stdout = stdout().into_raw_mode().unwrap();
-        let stdin = stdin();
-        self.render(&mut stdout);
-
-        // Handle user inputs and render interface
-        for c in stdin.keys() {
-            match c.unwrap() {
-                Key::Char('q') => {
-                    write!(stdout, "{}", style::Reset).unwrap();
-                    break;
-                },
-                Key::Char('w') => {
-                    self.move_cursor(Heading::North);
-                }, 
-                Key::Char('a') => {
-                    self.move_cursor(Heading::East);
-                },
-                Key::Char('s') => {
-                    self.move_cursor(Heading::West);
-                },
-                Key::Char('d') => {
-                    self.move_cursor(Heading::South);
-                },
-                _ => {}
-            }
-        }
-        stdout.flush().unwrap();
-    }
-}
-
 #[derive(Debug)]
 enum Faction {
     Red,
@@ -131,14 +14,19 @@ enum Faction {
 #[derive(Debug)]
 struct Board {
     faction: Faction,
-    height: i8,
-    width: i8,
+    height: u16,
+    width: u16,
 }
 
 #[derive(Debug)]
 struct Coordinates {
-    x: i8,
-    y: i8
+    x: u16,
+    y: u16
+}
+
+#[derive(Debug)]
+struct Cursor {
+    coordinates: Coordinates
 }
 
 enum Heading {
@@ -148,8 +36,56 @@ enum Heading {
     South
 }
 
+impl Cursor {
+    fn new(x: u16, y: u16) -> Cursor {
+        Cursor {
+            coordinates: Coordinates {
+                x,
+                y
+            }
+        }
+    }
+
+    fn on_move(self, heading: Heading) -> Cursor {
+        match heading {
+            Heading::North => Cursor {
+                coordinates: Coordinates {
+                    x: self.coordinates.x,
+                    y: self.coordinates.y - 1
+                }
+            },
+            Heading::East => Cursor {
+                coordinates: Coordinates {
+                    x: self.coordinates.x + 1,
+                    y: self.coordinates.y
+                }
+            },
+            Heading::West => Cursor { 
+                coordinates: Coordinates {
+                    x: self.coordinates.x - 1,
+                    y: self.coordinates.y
+                }
+            },
+            Heading::South => Cursor {
+                coordinates: Coordinates {
+                    x: self.coordinates.x,
+                    y: self.coordinates.y + 1
+                }
+            }
+        }
+    }
+
+    fn render(self, stdout: &mut RawTerminal<Stdout>) {
+        write!(stdout, "{}{}{}",
+            Goto(self.coordinates.x, self.coordinates.y),
+            color::Bg(color::Red),
+            style::Reset
+        ).unwrap()
+    }
+}
+
 impl Board {
-    fn new(faction: Faction, width: i8, height: i8) -> Board {
+    fn new(faction: Faction, width: u16, height: u16) -> Board {
         Board {
             faction,
             height,
@@ -172,8 +108,20 @@ impl Board {
 }
 
 fn main() {
+    let mut stdout = stdout().into_raw_mode().unwrap();
+    let stdin = stdin();
 
+    write!(stdout, "{}{}{}", 
+        termion::clear::All,
+        Goto(1,1),
+        termion::cursor::Hide
+    ).unwrap();
 
-    let game = Game::new();
-    game.start();
+    let red_board = Board::new(Faction::Blue, 8, 8);
+    let blue_board = Board::new(Faction::Red, 8, 8);
+    let cursor = Cursor::new(1, 1);
+
+    red_board.render(&mut stdout);
+    blue_board.render(&mut stdout);
+    cursor.render(&mut stdout);
 }
