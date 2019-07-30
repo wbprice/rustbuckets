@@ -31,6 +31,33 @@ struct Cursor {
     base: Coordinates,
 }
 
+struct Attack {
+    coordinates: Coordinates,
+    base: Coordinates,
+    result: AttackResults
+}
+
+impl Attack {
+    fn new(x: u16, y: u16) -> Attack {
+        Attack {
+            coordinates: Coordinates {
+                x,
+                y
+            },
+            base: Coordinates {
+                x,
+                y
+            },
+            result: AttackResults::Miss
+        }
+    }
+}
+
+enum AttackResults {
+    Hit,
+    Miss
+}
+
 enum Heading {
     North,
     East,
