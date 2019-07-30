@@ -224,7 +224,7 @@ fn main() {
     let red_board = Board::new(Faction::Blue, 8, 8, 1, 2);
     let blue_board = Board::new(Faction::Red, 8, 8, 1, 11);
     let mut cursor = Cursor::new(1, 2);
-    let mut attacks : Vec<Attack> = vec![];
+    let mut attacks : [Attack; 0];
     let mut info = Label::new(1, 19, "Hello there".to_string());
     let title = Label::new(1, 1, "Rustbuckets v1.0".to_string());
 
@@ -233,7 +233,7 @@ fn main() {
     cursor.render(&mut stdout);
     info.render(&mut stdout);
     title.render(&mut stdout);
-    for attack in attacks {
+    for attack in attacks.into_iter() {
         attack.render(&mut stdout);
     }
 
@@ -261,7 +261,7 @@ fn main() {
             Key::Char('f') => {
                 attacks = [
                     attacks.clone(),
-                    vec![Attack::new(cursor.coordinates.x, cursor.coordinates.y)]
+                    [Attack::new(cursor.coordinates.x, cursor.coordinates.y)]
                 ].concat();
             }
             _ => {}
@@ -280,7 +280,7 @@ fn main() {
             ),
         );
         info.render(&mut stdout);
-        for attack in attacks {
+        for attack in attacks.into_iter() {
             attack.render(&mut stdout);
         }
 
