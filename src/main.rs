@@ -28,6 +28,7 @@ struct Coordinates {
 #[derive(Debug, Copy, Clone)]
 struct Cursor {
     coordinates: Coordinates,
+    base: Coordinates,
 }
 
 enum Heading {
@@ -41,54 +42,59 @@ impl Cursor {
     fn new(x: u16, y: u16) -> Cursor {
         Cursor {
             coordinates: Coordinates { x, y },
+            base: Coordinates { x, y },
         }
     }
 
     fn on_move(self, heading: Heading) -> Cursor {
         match heading {
             Heading::North => {
-                if self.coordinates.y > 2 {
+                if self.coordinates.y - self.base.y > 0 {
                     Cursor {
                         coordinates: Coordinates {
                             x: self.coordinates.x,
                             y: self.coordinates.y - 1,
                         },
+                        base: self.base,
                     }
                 } else {
                     self
                 }
             }
             Heading::East => {
-                if self.coordinates.x < 8 {
+                if self.coordinates.x - self.base.x < 7 {
                     Cursor {
                         coordinates: Coordinates {
                             x: self.coordinates.x + 1,
                             y: self.coordinates.y,
                         },
+                        base: self.base,
                     }
                 } else {
                     self
                 }
             }
             Heading::West => {
-                if self.coordinates.x > 1 {
+                if self.coordinates.x - self.base.x > 0 {
                     Cursor {
                         coordinates: Coordinates {
                             x: self.coordinates.x - 1,
                             y: self.coordinates.y,
                         },
+                        base: self.base,
                     }
                 } else {
                     self
                 }
             }
             Heading::South => {
-                if self.coordinates.y < 9 {
+                if self.coordinates.y - self.base.y < 7 {
                     Cursor {
                         coordinates: Coordinates {
                             x: self.coordinates.x,
                             y: self.coordinates.y + 1,
                         },
+                        base: self.base,
                     }
                 } else {
                     self
@@ -213,7 +219,11 @@ fn main() {
         info = Label::new(
             1,
             19,
-            format!("({},{})", cursor.coordinates.x, cursor.coordinates.y),
+            format!(
+                "({},{})",
+                cursor.coordinates.x - cursor.base.x,
+                cursor.coordinates.y - cursor.base.y
+            ),
         );
         info.render(&mut stdout);
 
