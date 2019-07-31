@@ -310,11 +310,9 @@ fn main() {
             1,
             19,
             format!(
-                "{},{} ({},{})",
+                "({},{})",
                 cursor.coordinates.x,
-                cursor.coordinates.y,
-                cursor.coordinates.x - cursor.base.x,
-                cursor.coordinates.y - cursor.base.y
+                cursor.coordinates.y
             ),
         );
         for attack in attacks.clone() {
