@@ -337,8 +337,8 @@ impl<'a> Ship<'a> {
         for segment in self.segments {
             let board_coords = translate_game_coords_to_board_coords(segment.coordinates);
             let screen_coords = Coordinates {
-                x: board_coords.x + self.origin.x,
-                y: board_coords.y + self.origin.y
+                x: board_coords.x + self.board.origin.x,
+                y: board_coords.y + self.board.origin.y
             };
 
             write!(
@@ -393,60 +393,68 @@ fn main() {
     cursor.render(&mut stdout);
     info.render(&mut stdout);
     title.render(&mut stdout);
-    for attack in attacks.clone() {
-        attack.render(&mut stdout);
-    }
+
+    // Some test ships
+    ships.push(Ship::new(Coordinates { x: 2, y: 0}, &red_board, Heading::South, 3));
+    ships.push(Ship::new(Coordinates { x: 3, y: 3}, &red_board, Heading::East, 3));
+    ships.push(Ship::new(Coordinates { x: 0, y: 7}, &red_board, Heading::North, 5));
+    ships.push(Ship::new(Coordinates { x: 7, y: 7}, &red_board, Heading::North, 4));
+    ships.push(Ship::new(Coordinates { x: 4, y: 6}, &red_board, Heading::West, 2));
+
     for ship in ships.clone() {
         ship.render(&mut stdout);
+    }
+    for attack in attacks.clone() {
+        attack.render(&mut stdout);
     }
 
     stdout.flush().unwrap();
 
     // Handle user inputs and render interface
     for c in stdin.keys() {
-    match c.unwrap() {
-        Key::Char('q') => {
-            write!(stdout, "{}", style::Reset).unwrap();
-            break;
+        match c.unwrap() {
+            Key::Char('q') => {
+                write!(stdout, "{}", style::Reset).unwrap();
+                break;
+            }
+            Key::Char('w') => {
+                cursor = cursor.on_move(Heading::North);
+            }
+            Key::Char('a') => {
+                cursor = cursor.on_move(Heading::West);
+            }
+            Key::Char('s') => {
+                cursor = cursor.on_move(Heading::South);
+            }
+            Key::Char('d') => {
+                cursor = cursor.on_move(Heading::East);
+            }
+            Key::Char('f') => {
+                attacks.push(Attack::new(cursor.coordinates, &red_board));
+            }
+            _ => {}
         }
-        Key::Char('w') => {
-            cursor = cursor.on_move(Heading::North);
-        }
-        Key::Char('a') => {
-            cursor = cursor.on_move(Heading::West);
-        }
-        Key::Char('s') => {
-            cursor = cursor.on_move(Heading::South);
-        }
-        Key::Char('d') => {
-            cursor = cursor.on_move(Heading::East);
-        }
-        Key::Char('f') => {
-            attacks.push(Attack::new(cursor.coordinates, &red_board));
-        }
-        _ => {}
-    }
 
-    red_board.render(&mut stdout);
-    blue_board.render(&mut stdout);
-    cursor.render(&mut stdout);
-    info = Label::new(
-        1,
-        19,
-        format!(
-            "({},{})",
-            cursor.coordinates.x,
-            cursor.coordinates.y
-        ),
-    );
-    for attack in attacks.clone() {
-        attack.render(&mut stdout);
-    }
-    for ship in ships.clone() {
-        ship.render(&mut stdout);
-    }
-    info.render(&mut stdout);
-    stdout.flush().unwrap();
+        red_board.render(&mut stdout);
+        blue_board.render(&mut stdout);
+        cursor.render(&mut stdout);
+        info = Label::new(
+            1,
+            19,
+            format!(
+                "({},{})",
+                cursor.coordinates.x,
+                cursor.coordinates.y
+            ),
+        );
+        for ship in ships.clone() {
+            ship.render(&mut stdout);
+        }
+        for attack in attacks.clone() {
+            attack.render(&mut stdout);
+        }
+        info.render(&mut stdout);
+        stdout.flush().unwrap();
     }
 }
 
