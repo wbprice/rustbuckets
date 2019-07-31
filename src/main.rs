@@ -345,7 +345,7 @@ impl<'a> Ship<'a> {
                 stdout,
                 "{}{}   {}",
                 Goto(screen_coords.x, screen_coords.y),
-                color::Fg(color::Cyan),
+                color::Bg(color::Red),
                 style::Reset
             ).unwrap();
         }
@@ -390,7 +390,6 @@ fn main() {
 
     red_board.render(&mut stdout);
     blue_board.render(&mut stdout);
-    cursor.render(&mut stdout);
     info.render(&mut stdout);
     title.render(&mut stdout);
 
@@ -407,6 +406,7 @@ fn main() {
     for attack in attacks.clone() {
         attack.render(&mut stdout);
     }
+    cursor.render(&mut stdout);
 
     stdout.flush().unwrap();
 
@@ -437,12 +437,11 @@ fn main() {
 
         red_board.render(&mut stdout);
         blue_board.render(&mut stdout);
-        cursor.render(&mut stdout);
         info = Label::new(
             1,
             19,
             format!(
-                "({},{})",
+                "Coords. {},{}",
                 cursor.coordinates.x,
                 cursor.coordinates.y
             ),
@@ -453,6 +452,7 @@ fn main() {
         for attack in attacks.clone() {
             attack.render(&mut stdout);
         }
+        cursor.render(&mut stdout);
         info.render(&mut stdout);
         stdout.flush().unwrap();
     }
