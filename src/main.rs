@@ -25,6 +25,13 @@ struct Coordinates {
     y: u16,
 }
 
+fn translate_game_coords_to_board_coords(coordinates: Coordinates) -> Coordinates {
+    Coordinates {
+        x: 1,
+        y: 1
+    }
+}
+
 #[derive(Debug, Copy, Clone)]
 struct Cursor {
     coordinates: Coordinates,
@@ -37,6 +44,7 @@ struct Attack {
     base: Coordinates,
     result: AttackResults
 }
+
 
 impl Attack {
     fn new(x: u16, y: u16) -> Attack {
@@ -92,6 +100,16 @@ impl Cursor {
         }
     }
 
+    /*
+    +---------------+----------------+
+    | Game Position | Board Position |
+    |---------------|----------------|
+    | 0,0           | 1,1            |
+    | 0,1           | 1,3            |
+    | 1,0           | 5,1            |
+    | 1,1           | 5,3            |
+    +---------------+----------------+
+    */
     fn on_move(self, heading: Heading) -> Cursor {
         match heading {
             Heading::North => {
@@ -297,7 +315,9 @@ fn main() {
             1,
             19,
             format!(
-                "({},{})",
+                "{},{} ({},{})",
+                cursor.coordinates.x,
+                cursor.coordinates.y,
                 cursor.coordinates.x - cursor.base.x,
                 cursor.coordinates.y - cursor.base.y
             ),
@@ -307,5 +327,22 @@ fn main() {
         }
         info.render(&mut stdout);
         stdout.flush().unwrap();
+    }
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_translate_coords() {
+        let coords = Coordinates {
+            x: 0,
+            y: 0
+        };
+        let result = translate_game_coords_to_board_coords(coords);
+        assert_eq!(result.x, 1);
+        assert_eq!(result.y, 1);
     }
 }
