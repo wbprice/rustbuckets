@@ -267,35 +267,16 @@ impl Label {
 }
 
 #[derive(Debug)]
-struct Ship {
+struct Ship<'a> {
     origin: Coordinates,
-    base: Coordinates,
+    board: &'a Board,
     heading: Heading,
     condition: Condition,
     segments: Vec<ShipSegment>
 }
 
-#[derive(Debug)]
-struct ShipSegment {
-    coordinates: Coordinates,
-    condition: Condition
-}
-
-impl ShipSegment {
-    fn new(coordinates: Coordinates) -> ShipSegment {
-        ShipSegment {
-            coordinates,
-            condition: Condition::Nominal
-        }
-    }
-
-    fn render(self, base: Coordinates) {
-
-    }
-}
-
-impl Ship {
-    fn new(origin: Coordinates, base: Coordinates, heading: Heading, length: u16) -> Ship {
+impl<'a> Ship<'a> {
+    fn new(origin: Coordinates, board: &'a Board, heading: Heading, length: u16) -> Ship {
         let mut segments: Vec<ShipSegment> = vec![];
         // For n segments in
         for n in 0..length {
@@ -345,7 +326,7 @@ impl Ship {
 
         Ship {
             origin,
-            base,
+            board,
             heading,
             condition: Condition::Nominal,
             segments
@@ -358,6 +339,26 @@ impl Ship {
         }
     }
 }
+
+#[derive(Debug)]
+struct ShipSegment {
+    coordinates: Coordinates,
+    condition: Condition
+}
+
+impl ShipSegment {
+    fn new(coordinates: Coordinates) -> ShipSegment {
+        ShipSegment {
+            coordinates,
+            condition: Condition::Nominal
+        }
+    }
+
+    fn render(self, base: Coordinates) {
+
+    }
+}
+
 
 fn main() {
     let mut stdout = stdout().into_raw_mode().unwrap();
@@ -474,8 +475,8 @@ mod tests {
     #[test]
     fn test_create_ship_east_0_0() {
         let origin = Coordinates { x: 0, y: 0 };
-        let base = Coordinates { x: 1, y: 2 };
-        let ship = Ship::new(origin, base, Heading::East, 3);
+        let board = Board::new(Faction::Blue, Coordinates { x: 1, y: 2}, 8, 8);
+        let ship = Ship::new(origin, &board, Heading::East, 3);
 
         assert_eq!(ship.segments.len(), 3);
         assert_eq!(ship.segments[0].coordinates.x, 0);
@@ -489,8 +490,8 @@ mod tests {
     #[test]
     fn test_create_ship_south_0_0() {
         let origin = Coordinates { x: 0, y: 0 };
-        let base = Coordinates { x: 1, y: 2 };
-        let ship = Ship::new(origin, base, Heading::South, 3);
+        let board = Board::new(Faction::Blue, Coordinates { x: 1, y: 2}, 8, 8);
+        let ship = Ship::new(origin, &board, Heading::South, 3);
 
         assert_eq!(ship.segments.len(), 3);
         assert_eq!(ship.segments[0].coordinates.x, 0);
