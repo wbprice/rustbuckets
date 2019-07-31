@@ -60,10 +60,15 @@ impl Attack {
             AttackResults::Miss => "O",
         };
 
+        let screen_coords = translate_game_coords_to_board_coords(Coordinates {
+            x: self.coordinates.x + self.base.x,
+            y: self.coordinates.y + self.base.y
+        });
+
         write!(
             stdout,
             "{}{}{}{}{}",
-            Goto(self.coordinates.x, self.coordinates.y),
+            Goto(screen_coords.x - 1, screen_coords.y - 1),
             color::Fg(color::White),
             color::Bg(color::Black),
             symbol,
@@ -298,6 +303,7 @@ fn main() {
                 cursor = cursor.on_move(Heading::East);
             }
             Key::Char('f') => {
+                dbg!(cursor);
                 attacks.push(Attack::new(cursor.coordinates.x, cursor.coordinates.y));
             }
             _ => {}
