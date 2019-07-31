@@ -46,10 +46,10 @@ struct Attack {
 }
 
 impl Attack {
-    fn new(x: u16, y: u16) -> Attack {
+    fn new(x: u16, y: u16, base_x: u16, base_y: u16) -> Attack {
         Attack {
             coordinates: Coordinates { x, y },
-            base: Coordinates { x, y },
+            base: Coordinates { x: base_x, y: base_y },
             result: AttackResults::Miss,
         }
     }
@@ -60,15 +60,19 @@ impl Attack {
             AttackResults::Miss => "O",
         };
 
-        let screen_coords = translate_game_coords_to_board_coords(Coordinates {
-            x: self.coordinates.x + self.base.x,
-            y: self.coordinates.y + self.base.y
+        let board_coords = translate_game_coords_to_board_coords(Coordinates {
+            x: self.coordinates.x,
+            y: self.coordinates.y
         });
+        let screen_coords = Coordinates {
+            x: board_coords.x + self.base.x + 1,
+            y: board_coords.y + self.base.y
+        };
 
         write!(
             stdout,
             "{}{}{}{}{}",
-            Goto(screen_coords.x - 1, screen_coords.y - 1),
+            Goto(screen_coords.x, screen_coords.y),
             color::Fg(color::White),
             color::Bg(color::Black),
             symbol,
@@ -303,8 +307,7 @@ fn main() {
                 cursor = cursor.on_move(Heading::East);
             }
             Key::Char('f') => {
-                dbg!(cursor);
-                attacks.push(Attack::new(cursor.coordinates.x, cursor.coordinates.y));
+                attacks.push(Attack::new(cursor.coordinates.x, cursor.coordinates.y, red_board.origin.x, red_board.origin.y));
             }
             _ => {}
         }
