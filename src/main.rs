@@ -287,7 +287,7 @@ impl ShipSegment {
         }
     }
 
-    fn render(self, &mut stdout: RawTerminal<Stdout>) {
+    fn render(self, base: Coordinates) {
 
     }
 }
@@ -352,7 +352,7 @@ impl Ship {
 
     fn render(self, stdout: &mut RawTerminal<Stdout>) {
         for segment in self.segments {
-            segment.render();
+
         }
     }
 }
@@ -377,7 +377,7 @@ fn main() {
     let mut info = Label::new(1, 19, "Hello".to_string());
     let title = Label::new(1, 1, "Rustbuckets v0.1.0".to_string());
 
-    red_board.r&mut stdout);
+    red_board.render(&mut stdout);
     blue_board.render(&mut stdout);
     cursor.render(&mut stdout);
     info.render(&mut stdout);
