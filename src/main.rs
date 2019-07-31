@@ -25,6 +25,13 @@ struct Coordinates {
     y: u16,
 }
 
+fn translate_game_coords_to_board_coords(coordinates: Coordinates) -> Coordinates {
+    Coordinates {
+        x: coordinates.x * 4 + 1,
+        y: coordinates.y * 2 + 1,
+    }
+}
+
 #[derive(Debug, Copy, Clone)]
 struct Cursor {
     coordinates: Coordinates,
@@ -35,46 +42,50 @@ struct Cursor {
 struct Attack {
     coordinates: Coordinates,
     base: Coordinates,
-    result: AttackResults
+    result: AttackResults,
 }
 
 impl Attack {
-    fn new(x: u16, y: u16) -> Attack {
+    fn new(x: u16, y: u16, base_x: u16, base_y: u16) -> Attack {
         Attack {
-            coordinates: Coordinates {
-                x,
-                y
-            },
-            base: Coordinates {
-                x,
-                y
-            },
-            result: AttackResults::Miss
+            coordinates: Coordinates { x, y },
+            base: Coordinates { x: base_x, y: base_y },
+            result: AttackResults::Miss,
         }
     }
 
     fn render(&self, stdout: &mut RawTerminal<Stdout>) {
         let symbol = match self.result {
             AttackResults::Hit => "X",
-            AttackResults::Miss => "O"
+            AttackResults::Miss => "O",
+        };
+
+        let board_coords = translate_game_coords_to_board_coords(Coordinates {
+            x: self.coordinates.x,
+            y: self.coordinates.y
+        });
+        let screen_coords = Coordinates {
+            x: board_coords.x + self.base.x + 1,
+            y: board_coords.y + self.base.y
         };
 
         write!(
             stdout,
             "{}{}{}{}{}",
-            Goto(self.coordinates.x, self.coordinates.y),
+            Goto(screen_coords.x, screen_coords.y),
             color::Fg(color::White),
             color::Bg(color::Black),
             symbol,
             style::Reset
-        ).unwrap();
+        )
+        .unwrap();
     }
 }
 
 #[derive(Copy, Clone, Debug)]
 enum AttackResults {
     Hit,
-    Miss
+    Miss,
 }
 
 enum Heading {
@@ -85,17 +96,17 @@ enum Heading {
 }
 
 impl Cursor {
-    fn new(x: u16, y: u16) -> Cursor {
+    fn new(x: u16, y: u16, base_x: u16, base_y: u16) -> Cursor {
         Cursor {
             coordinates: Coordinates { x, y },
-            base: Coordinates { x, y },
+            base: Coordinates { x: base_x, y: base_y },
         }
     }
 
     fn on_move(self, heading: Heading) -> Cursor {
         match heading {
             Heading::North => {
-                if self.coordinates.y - self.base.y > 0 {
+                if self.coordinates.y > 0 {
                     Cursor {
                         coordinates: Coordinates {
                             x: self.coordinates.x,
@@ -108,7 +119,7 @@ impl Cursor {
                 }
             }
             Heading::East => {
-                if self.coordinates.x - self.base.x < 7 {
+                if self.coordinates.x < 7 {
                     Cursor {
                         coordinates: Coordinates {
                             x: self.coordinates.x + 1,
@@ -121,7 +132,7 @@ impl Cursor {
                 }
             }
             Heading::West => {
-                if self.coordinates.x - self.base.x > 0 {
+                if self.coordinates.x > 0 {
                     Cursor {
                         coordinates: Coordinates {
                             x: self.coordinates.x - 1,
@@ -134,7 +145,7 @@ impl Cursor {
                 }
             }
             Heading::South => {
-                if self.coordinates.y - self.base.y < 7 {
+                if self.coordinates.y < 7 {
                     Cursor {
                         coordinates: Coordinates {
                             x: self.coordinates.x,
@@ -150,10 +161,15 @@ impl Cursor {
     }
 
     fn render(self, stdout: &mut RawTerminal<Stdout>) {
+        let board_coords = translate_game_coords_to_board_coords(self.coordinates);
+        let screen_coords = Coordinates {
+            x: board_coords.x + self.base.x,
+            y: board_coords.y + self.base.y,
+        };
         write!(
             stdout,
             "{}{}[ ]{}",
-            Goto(self.coordinates.x, self.coordinates.y),
+            Goto(screen_coords.x, screen_coords.y),
             color::Bg(color::Blue),
             style::Reset
         )
@@ -171,15 +187,45 @@ impl Board {
         }
     }
 
+    fn _render_latitude_line(&self, stdout: &mut RawTerminal<Stdout>) {
+        let mut output = "+".to_string();
+        for _ in 0..8 {
+            output.push_str("---+");
+        }
+        write!(
+            stdout,
+            "{}{}{}{}\n\r",
+            color::Fg(color::White),
+            color::Bg(color::Blue),
+            output,
+            style::Reset
+        )
+        .unwrap();
+    }
+
+    fn _render_longitude_line(&self, stdout: &mut RawTerminal<Stdout>) {
+        let mut output = "|".to_string();
+        for _ in 0..8 {
+            output.push_str("   |");
+        }
+        write!(
+            stdout,
+            "{}{}{}{}\n\r",
+            color::Fg(color::White),
+            color::Bg(color::Blue),
+            output,
+            style::Reset
+        )
+        .unwrap();
+    }
+
     fn render(&self, stdout: &mut RawTerminal<Stdout>) {
         write!(stdout, "{}", Goto(self.origin.x, self.origin.y)).unwrap();
         for _ in 1..self.height + 1 {
-            for _ in 1..self.width + 1 {
-                // Print blue waters to start
-                write!(stdout, "{}\u{3000}{}", color::Bg(color::Blue), style::Reset).unwrap();
-            }
-            write!(stdout, "\n\r").unwrap();
+            self._render_latitude_line(stdout);
+            self._render_longitude_line(stdout);
         }
+        self._render_latitude_line(stdout);
         write!(stdout, "\n\r").unwrap();
     }
 }
@@ -224,11 +270,11 @@ fn main() {
     .unwrap();
 
     let red_board = Board::new(Faction::Blue, 8, 8, 1, 2);
-    let blue_board = Board::new(Faction::Red, 8, 8, 1, 11);
-    let mut cursor = Cursor::new(1, 2);
-    let mut attacks : Vec<Attack> = Vec::new();
-    let mut info = Label::new(1, 19, "Hello there".to_string());
-    let title = Label::new(1, 1, "Rustbuckets v1.0".to_string());
+    let blue_board = Board::new(Faction::Red, 8, 8, 1, 20);
+    let mut cursor = Cursor::new(0, 0, 1, 2);
+    let mut attacks: Vec<Attack> = Vec::new();
+    let mut info = Label::new(1, 19, "Hello".to_string());
+    let title = Label::new(1, 1, "Rustbuckets v0.1.0".to_string());
 
     red_board.render(&mut stdout);
     blue_board.render(&mut stdout);
@@ -259,9 +305,9 @@ fn main() {
             }
             Key::Char('d') => {
                 cursor = cursor.on_move(Heading::East);
-            },
+            }
             Key::Char('f') => {
-                attacks.push(Attack::new(cursor.coordinates.x, cursor.coordinates.y));
+                attacks.push(Attack::new(cursor.coordinates.x, cursor.coordinates.y, red_board.origin.x, red_board.origin.y));
             }
             _ => {}
         }
@@ -274,8 +320,8 @@ fn main() {
             19,
             format!(
                 "({},{})",
-                cursor.coordinates.x - cursor.base.x,
-                cursor.coordinates.y - cursor.base.y
+                cursor.coordinates.x,
+                cursor.coordinates.y
             ),
         );
         for attack in attacks.clone() {
@@ -283,5 +329,42 @@ fn main() {
         }
         info.render(&mut stdout);
         stdout.flush().unwrap();
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_translate_coords_0_0() {
+        let coords = Coordinates { x: 0, y: 0 };
+        let result = translate_game_coords_to_board_coords(coords);
+        assert_eq!(result.x, 1);
+        assert_eq!(result.y, 1);
+    }
+
+    #[test]
+    fn test_translate_coords_0_1() {
+        let coords = Coordinates { x: 0, y: 1 };
+        let result = translate_game_coords_to_board_coords(coords);
+        assert_eq!(result.x, 1);
+        assert_eq!(result.y, 3);
+    }
+
+    #[test]
+    fn test_translate_coords_1_0() {
+        let coords = Coordinates { x: 1, y: 0 };
+        let result = translate_game_coords_to_board_coords(coords);
+        assert_eq!(result.x, 5);
+        assert_eq!(result.y, 1);
+    }
+
+    #[test]
+    fn test_translate_coords_1_1() {
+        let coords = Coordinates { x: 1, y: 1 };
+        let result = translate_game_coords_to_board_coords(coords);
+        assert_eq!(result.x, 5);
+        assert_eq!(result.y, 3);
     }
 }
