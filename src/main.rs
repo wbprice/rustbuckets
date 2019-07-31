@@ -336,7 +336,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_translate_coords() {
+    fn test_translate_coords_0_0() {
         let coords = Coordinates {
             x: 0,
             y: 0
@@ -344,5 +344,38 @@ mod tests {
         let result = translate_game_coords_to_board_coords(coords);
         assert_eq!(result.x, 1);
         assert_eq!(result.y, 1);
+    }
+
+    #[test]
+    fn test_translate_coords_0_1() {
+        let coords = Coordinates {
+            x: 0,
+            y: 1
+        };
+        let result = translate_game_coords_to_board_coords(coords);
+        assert_eq!(result.x, 1);
+        assert_eq!(result.y, 3);
+    }
+
+    #[test]
+    fn test_translate_coords_1_0() {
+        let coords = Coordinates {
+            x: 1,
+            y: 0
+        };
+        let result = translate_game_coords_to_board_coords(coords);
+        assert_eq!(result.x, 5);
+        assert_eq!(result.y, 1);
+    }
+
+    #[test]
+    fn test_translate_coords_1_1() {
+        let coords = Coordinates {
+            x: 1,
+            y: 1
+        };
+        let result = translate_game_coords_to_board_coords(coords);
+        assert_eq!(result.x, 5);
+        assert_eq!(result.y, 3);
     }
 }
