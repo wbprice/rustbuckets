@@ -262,7 +262,7 @@ fn main() {
 
     let red_board = Board::new(Faction::Blue, 8, 8, 1, 2);
     let blue_board = Board::new(Faction::Red, 8, 8, 1, 20);
-    let mut cursor = Cursor::new(1, 2);
+    let mut cursor = Cursor::new(0, 0);
     let mut attacks: Vec<Attack> = Vec::new();
     let mut info = Label::new(1, 19, "Hello".to_string());
     let title = Label::new(1, 1, "Rustbuckets v0.1.0".to_string());
