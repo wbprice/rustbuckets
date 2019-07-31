@@ -251,8 +251,8 @@ fn main() {
     let blue_board = Board::new(Faction::Red, 8, 8, 1, 20);
     let mut cursor = Cursor::new(1, 2);
     let mut attacks : Vec<Attack> = Vec::new();
-    let mut info = Label::new(1, 19, "Hello there".to_string());
-    let title = Label::new(1, 1, "Rustbuckets v1.0".to_string());
+    let mut info = Label::new(1, 19, "Hello".to_string());
+    let title = Label::new(1, 1, "Rustbuckets v0.1.0".to_string());
 
     red_board.render(&mut stdout);
     blue_board.render(&mut stdout);
