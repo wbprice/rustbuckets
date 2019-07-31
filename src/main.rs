@@ -33,18 +33,35 @@ struct Attack<'a> {
 }
 
 impl<'a> Attack<'a> {
-    fn new(coordinates: Coordinates, board: &Board) -> Attack {
-        Attack {
-            coordinates,
-            board,
-            result: AttackResults::Miss,
+    fn new(coordinates: Coordinates, board: &'a Board, ships: Vec<Ship>) -> Attack<'a> {
+        let mut hit = false;
+        for ship in ships {
+            for segment in ship.segments {
+                if segment.coordinates.x == coordinates.x && segment.coordinates.y == coordinates.y {
+                    hit = true;
+                }
+            }
+        }
+
+        if hit {
+            Attack {
+                coordinates,
+                board,
+                result: AttackResults::Hit
+            }
+        } else {
+            Attack {
+                coordinates,
+                board,
+                result: AttackResults::Miss
+            }
         }
     }
 
     fn render(self, stdout: &mut RawTerminal<Stdout>) {
         let symbol = match self.result {
             AttackResults::Hit => "X",
-            AttackResults::Miss => "O",
+            AttackResults::Miss => "^",
         };
 
         let board_coords = translate_game_coords_to_board_coords(Coordinates {
@@ -430,7 +447,7 @@ fn main() {
                 cursor = cursor.on_move(Heading::East);
             }
             Key::Char('f') => {
-                attacks.push(Attack::new(cursor.coordinates, &red_board));
+                attacks.push(Attack::new(cursor.coordinates, &red_board, ships.clone()));
             }
             _ => {}
         }
