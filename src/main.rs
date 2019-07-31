@@ -11,13 +11,6 @@ enum Faction {
     Blue,
 }
 
-#[derive(Debug)]
-struct Board {
-    faction: Faction,
-    origin: Coordinates,
-    height: u16,
-    width: u16,
-}
 
 #[derive(Debug, Copy, Clone)]
 struct Coordinates {
@@ -32,11 +25,6 @@ fn translate_game_coords_to_board_coords(coordinates: Coordinates) -> Coordinate
     }
 }
 
-#[derive(Debug, Copy, Clone)]
-struct Cursor {
-    coordinates: Coordinates,
-    base: Coordinates,
-}
 
 #[derive(Clone, Copy, Debug)]
 struct Attack {
@@ -103,15 +91,21 @@ enum Condition {
     Destroyed
 }
 
-impl Cursor {
-    fn new(x: u16, y: u16, base_x: u16, base_y: u16) -> Cursor {
+#[derive(Debug, Copy, Clone)]
+struct Cursor<'a>{
+    coordinates: Coordinates,
+    board: &'a Board
+}
+
+impl<'a> Cursor<'a> {
+    fn new(coordinates: Coordinates, board: &'a Board) -> Cursor<'a> {
         Cursor {
-            coordinates: Coordinates { x, y },
-            base: Coordinates { x: base_x, y: base_y },
+            coordinates,
+            board
         }
     }
 
-    fn on_move(self, heading: Heading) -> Cursor {
+    fn on_move(self, heading: Heading) -> Cursor<'a> {
         match heading {
             Heading::North => {
                 if self.coordinates.y > 0 {
@@ -120,7 +114,7 @@ impl Cursor {
                             x: self.coordinates.x,
                             y: self.coordinates.y - 1,
                         },
-                        base: self.base,
+                        board: self.board
                     }
                 } else {
                     self
@@ -133,7 +127,7 @@ impl Cursor {
                             x: self.coordinates.x + 1,
                             y: self.coordinates.y,
                         },
-                        base: self.base,
+                        board: self.board
                     }
                 } else {
                     self
@@ -146,7 +140,7 @@ impl Cursor {
                             x: self.coordinates.x - 1,
                             y: self.coordinates.y,
                         },
-                        base: self.base,
+                        board: self.board
                     }
                 } else {
                     self
@@ -159,7 +153,7 @@ impl Cursor {
                             x: self.coordinates.x,
                             y: self.coordinates.y + 1,
                         },
-                        base: self.base,
+                        board: self.board,
                     }
                 } else {
                     self
@@ -171,8 +165,8 @@ impl Cursor {
     fn render(self, stdout: &mut RawTerminal<Stdout>) {
         let board_coords = translate_game_coords_to_board_coords(self.coordinates);
         let screen_coords = Coordinates {
-            x: board_coords.x + self.base.x,
-            y: board_coords.y + self.base.y,
+            x: board_coords.x + self.board.origin.x,
+            y: board_coords.y + self.board.origin.y,
         };
         write!(
             stdout,
@@ -185,13 +179,21 @@ impl Cursor {
     }
 }
 
+#[derive(Debug)]
+struct Board {
+    faction: Faction,
+    origin: Coordinates,
+    height: u16,
+    width: u16,
+}
+
 impl Board {
-    fn new(faction: Faction, width: u16, height: u16, x: u16, y: u16) -> Board {
+    fn new(faction: Faction, origin: Coordinates, width: u16, height: u16) -> Board {
         Board {
             faction,
-            origin: Coordinates { x, y },
+            origin,
             height,
-            width,
+            width
         }
     }
 
@@ -370,9 +372,9 @@ fn main() {
     )
     .unwrap();
 
-    let red_board = Board::new(Faction::Blue, 8, 8, 1, 2);
-    let blue_board = Board::new(Faction::Red, 8, 8, 1, 20);
-    let mut cursor = Cursor::new(0, 0, 1, 2);
+    let red_board = Board::new(Faction::Blue, Coordinates { x: 1, y: 2 }, 8, 8);
+    let blue_board = Board::new(Faction::Red, Coordinates { x: 1, y: 20 }, 8, 8);
+    let mut cursor = Cursor::new(Coordinates { x: 0, y: 0 }, &red_board);
     let mut attacks: Vec<Attack> = Vec::new();
     let mut info = Label::new(1, 19, "Hello".to_string());
     let title = Label::new(1, 1, "Rustbuckets v0.1.0".to_string());
