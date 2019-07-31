@@ -25,11 +25,25 @@ fn translate_game_coords_to_board_coords(coordinates: Coordinates) -> Coordinate
     }
 }
 
+struct Attacks<'a> {
+    attacks: Vec<Attack>,
+    board: &'a Board
+}
+
+impl<'a> Attacks<'a> {
+    fn render(self, stdout: &mut RawTerminal<Stdout>) {
+        for attack in self.attacks {
+            attack.render(stdout, self.board);
+        }
+    }
+
+    fn push(self) {
+    }
+}
 
 #[derive(Clone, Copy, Debug)]
 struct Attack {
     coordinates: Coordinates,
-    base: Coordinates,
     result: AttackResults,
 }
 
@@ -42,7 +56,7 @@ impl Attack {
         }
     }
 
-    fn render(&self, stdout: &mut RawTerminal<Stdout>) {
+    fn render(self, stdout: &mut RawTerminal<Stdout>, board: &Board) {
         let symbol = match self.result {
             AttackResults::Hit => "X",
             AttackResults::Miss => "O",
@@ -53,8 +67,8 @@ impl Attack {
             y: self.coordinates.y
         });
         let screen_coords = Coordinates {
-            x: board_coords.x + self.base.x + 1,
-            y: board_coords.y + self.base.y
+            x: board_coords.x + self.board.origin.x + 1,
+            y: board_coords.y + self.board.origin.y
         };
 
         write!(
@@ -92,6 +106,7 @@ enum Condition {
 }
 
 #[derive(Debug, Copy, Clone)]
+
 struct Cursor<'a>{
     coordinates: Coordinates,
     board: &'a Board
