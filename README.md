@@ -13,3 +13,4 @@ cargo run
 
 - WASD to move the cursor
 - q to quit
+- f to launch an attack!
