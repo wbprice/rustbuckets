@@ -88,11 +88,19 @@ enum AttackResults {
     Miss,
 }
 
+#[derive(Debug)]
 enum Heading {
     North,
     East,
     West,
     South,
+}
+
+#[derive(Debug)]
+enum Condition {
+    Nominal,
+    Damaged,
+    Destroyed
 }
 
 impl Cursor {
@@ -256,23 +264,96 @@ impl Label {
     }
 }
 
+#[derive(Debug)]
 struct Ship {
-    length: u16,
     origin: Coordinates,
-    heading: Heading
+    base: Coordinates,
+    heading: Heading,
+    condition: Condition,
+    segments: Vec<ShipSegment>
 }
 
-impl Ship {
-    fn new(origin: Coordinates, heading: Heading, length: u16) -> Ship {
-        Ship {
-            origin,
-            heading,
-            length
+#[derive(Debug)]
+struct ShipSegment {
+    coordinates: Coordinates,
+    condition: Condition
+}
+
+impl ShipSegment {
+    fn new(coordinates: Coordinates) -> ShipSegment {
+        ShipSegment {
+            coordinates,
+            condition: Condition::Nominal
         }
     }
 
-    fn render(self) {
+    fn render(self, &mut stdout: RawTerminal<Stdout>) {
 
+    }
+}
+
+impl Ship {
+    fn new(origin: Coordinates, base: Coordinates, heading: Heading, length: u16) -> Ship {
+        let mut segments: Vec<ShipSegment> = vec![];
+        // For n segments in
+        for n in 0..length {
+            match heading {
+                Heading::North => {
+                    segments.push(
+                        ShipSegment::new(
+                            Coordinates {
+                                x: origin.x,
+                                y: origin.y - n
+                            }
+                        )
+                    )
+                },
+                Heading::East => {
+                    segments.push(
+                        ShipSegment::new(
+                            Coordinates {
+                                x: origin.x + n,
+                                y: origin.y
+                            }
+                        )
+                    )
+                },
+                Heading::West => {
+                    segments.push(
+                        ShipSegment::new(
+                            Coordinates {
+                                x: origin.x - n,
+                                y: origin.y
+                            }
+                        )
+                    )
+                },
+                Heading::South => {
+                    segments.push(
+                        ShipSegment::new(
+                            Coordinates {
+                                x: origin.x,
+                                y: origin.y + n
+                            }
+                        )
+                    )
+                }
+            }
+        }
+
+        Ship {
+            origin,
+            base,
+            heading,
+            condition: Condition::Nominal,
+            segments
+        }
+    }
+
+    fn render(self, stdout: &mut RawTerminal<Stdout>) {
+        for segment in self.segments {
+            segment.render();
+        }
     }
 }
 
@@ -296,7 +377,7 @@ fn main() {
     let mut info = Label::new(1, 19, "Hello".to_string());
     let title = Label::new(1, 1, "Rustbuckets v0.1.0".to_string());
 
-    red_board.render(&mut stdout);
+    red_board.r&mut stdout);
     blue_board.render(&mut stdout);
     cursor.render(&mut stdout);
     info.render(&mut stdout);
@@ -386,5 +467,35 @@ mod tests {
         let result = translate_game_coords_to_board_coords(coords);
         assert_eq!(result.x, 5);
         assert_eq!(result.y, 3);
+    }
+
+    #[test]
+    fn test_create_ship_east_0_0() {
+        let origin = Coordinates { x: 0, y: 0 };
+        let base = Coordinates { x: 1, y: 2 };
+        let ship = Ship::new(origin, base, Heading::East, 3);
+
+        assert_eq!(ship.segments.len(), 3);
+        assert_eq!(ship.segments[0].coordinates.x, 0);
+        assert_eq!(ship.segments[0].coordinates.y, 0);
+        assert_eq!(ship.segments[1].coordinates.x, 1);
+        assert_eq!(ship.segments[1].coordinates.y, 0);
+        assert_eq!(ship.segments[2].coordinates.x, 2);
+        assert_eq!(ship.segments[2].coordinates.y, 0);
+    }
+
+    #[test]
+    fn test_create_ship_south_0_0() {
+        let origin = Coordinates { x: 0, y: 0 };
+        let base = Coordinates { x: 1, y: 2 };
+        let ship = Ship::new(origin, base, Heading::South, 3);
+
+        assert_eq!(ship.segments.len(), 3);
+        assert_eq!(ship.segments[0].coordinates.x, 0);
+        assert_eq!(ship.segments[0].coordinates.y, 0);
+        assert_eq!(ship.segments[1].coordinates.x, 0);
+        assert_eq!(ship.segments[1].coordinates.y, 1);
+        assert_eq!(ship.segments[2].coordinates.x, 0);
+        assert_eq!(ship.segments[2].coordinates.y, 2);
     }
 }
