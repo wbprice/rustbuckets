@@ -171,15 +171,39 @@ impl Board {
         }
     }
 
+    fn _render_latitude_line(&self, stdout: &mut RawTerminal<Stdout>) {
+        let mut output = "+".to_string();
+        for _ in 1..8 {
+            output.push_str("---+");
+        }
+        write!(stdout, "{}{}{}{}\n\r",
+            color::Fg(color::White),
+            color::Bg(color::Blue),
+            output,
+            style::Reset
+        ).unwrap();
+    }
+
+    fn _render_longitude_line(&self, stdout: &mut RawTerminal<Stdout>) {
+        let mut output = "|".to_string();
+        for _ in 1..8 {
+            output.push_str("   |");
+        }
+        write!(stdout, "{}{}{}{}\n\r",
+            color::Fg(color::White),
+            color::Bg(color::Blue),
+            output,
+            style::Reset
+        ).unwrap();
+    }
+
     fn render(&self, stdout: &mut RawTerminal<Stdout>) {
         write!(stdout, "{}", Goto(self.origin.x, self.origin.y)).unwrap();
         for _ in 1..self.height + 1 {
-            for _ in 1..self.width + 1 {
-                // Print blue waters to start
-                write!(stdout, "{}\u{3000}{}", color::Bg(color::Blue), style::Reset).unwrap();
-            }
-            write!(stdout, "\n\r").unwrap();
+            self._render_latitude_line(stdout);
+            self._render_longitude_line(stdout);
         }
+        self._render_latitude_line(stdout);
         write!(stdout, "\n\r").unwrap();
     }
 }
@@ -224,7 +248,7 @@ fn main() {
     .unwrap();
 
     let red_board = Board::new(Faction::Blue, 8, 8, 1, 2);
-    let blue_board = Board::new(Faction::Red, 8, 8, 1, 11);
+    let blue_board = Board::new(Faction::Red, 8, 8, 1, 20);
     let mut cursor = Cursor::new(1, 2);
     let mut attacks : Vec<Attack> = Vec::new();
     let mut info = Label::new(1, 19, "Hello there".to_string());
