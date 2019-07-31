@@ -31,6 +31,52 @@ struct Cursor {
     base: Coordinates,
 }
 
+#[derive(Clone, Copy, Debug)]
+struct Attack {
+    coordinates: Coordinates,
+    base: Coordinates,
+    result: AttackResults
+}
+
+impl Attack {
+    fn new(x: u16, y: u16) -> Attack {
+        Attack {
+            coordinates: Coordinates {
+                x,
+                y
+            },
+            base: Coordinates {
+                x,
+                y
+            },
+            result: AttackResults::Miss
+        }
+    }
+
+    fn render(&self, stdout: &mut RawTerminal<Stdout>) {
+        let symbol = match self.result {
+            AttackResults::Hit => "X",
+            AttackResults::Miss => "O"
+        };
+
+        write!(
+            stdout,
+            "{}{}{}{}{}",
+            Goto(self.coordinates.x, self.coordinates.y),
+            color::Fg(color::White),
+            color::Bg(color::Black),
+            symbol,
+            style::Reset
+        ).unwrap();
+    }
+}
+
+#[derive(Copy, Clone, Debug)]
+enum AttackResults {
+    Hit,
+    Miss
+}
+
 enum Heading {
     North,
     East,
@@ -180,6 +226,7 @@ fn main() {
     let red_board = Board::new(Faction::Blue, 8, 8, 1, 2);
     let blue_board = Board::new(Faction::Red, 8, 8, 1, 11);
     let mut cursor = Cursor::new(1, 2);
+    let mut attacks : Vec<Attack> = Vec::new();
     let mut info = Label::new(1, 19, "Hello there".to_string());
     let title = Label::new(1, 1, "Rustbuckets v1.0".to_string());
 
@@ -188,6 +235,9 @@ fn main() {
     cursor.render(&mut stdout);
     info.render(&mut stdout);
     title.render(&mut stdout);
+    for attack in attacks.clone() {
+        attack.render(&mut stdout);
+    }
 
     stdout.flush().unwrap();
 
@@ -209,6 +259,9 @@ fn main() {
             }
             Key::Char('d') => {
                 cursor = cursor.on_move(Heading::East);
+            },
+            Key::Char('f') => {
+                attacks.push(Attack::new(cursor.coordinates.x, cursor.coordinates.y));
             }
             _ => {}
         }
@@ -225,8 +278,10 @@ fn main() {
                 cursor.coordinates.y - cursor.base.y
             ),
         );
+        for attack in attacks.clone() {
+            attack.render(&mut stdout);
+        }
         info.render(&mut stdout);
-
         stdout.flush().unwrap();
     }
 }
