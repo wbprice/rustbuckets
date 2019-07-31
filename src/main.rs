@@ -256,6 +256,26 @@ impl Label {
     }
 }
 
+struct Ship {
+    length: u16,
+    origin: Coordinates,
+    heading: Heading
+}
+
+impl Ship {
+    fn new(origin: Coordinates, heading: Heading, length: u16) -> Ship {
+        Ship {
+            origin,
+            heading,
+            length
+        }
+    }
+
+    fn render(self) {
+
+    }
+}
+
 fn main() {
     let mut stdout = stdout().into_raw_mode().unwrap();
     let stdin = stdin();
