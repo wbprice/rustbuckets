@@ -87,17 +87,17 @@ enum Heading {
 }
 
 impl Cursor {
-    fn new(x: u16, y: u16) -> Cursor {
+    fn new(x: u16, y: u16, base_x: u16, base_y: u16) -> Cursor {
         Cursor {
             coordinates: Coordinates { x, y },
-            base: Coordinates { x, y },
+            base: Coordinates { x: base_x, y: base_y },
         }
     }
 
     fn on_move(self, heading: Heading) -> Cursor {
         match heading {
             Heading::North => {
-                if self.coordinates.y - self.base.y > 0 {
+                if self.coordinates.y > 0 {
                     Cursor {
                         coordinates: Coordinates {
                             x: self.coordinates.x,
@@ -110,7 +110,7 @@ impl Cursor {
                 }
             }
             Heading::East => {
-                if self.coordinates.x - self.base.x < 7 {
+                if self.coordinates.x < 7 {
                     Cursor {
                         coordinates: Coordinates {
                             x: self.coordinates.x + 1,
@@ -123,7 +123,7 @@ impl Cursor {
                 }
             }
             Heading::West => {
-                if self.coordinates.x - self.base.x > 0 {
+                if self.coordinates.x > 0 {
                     Cursor {
                         coordinates: Coordinates {
                             x: self.coordinates.x - 1,
@@ -136,7 +136,7 @@ impl Cursor {
                 }
             }
             Heading::South => {
-                if self.coordinates.y - self.base.y < 7 {
+                if self.coordinates.y < 7 {
                     Cursor {
                         coordinates: Coordinates {
                             x: self.coordinates.x,
@@ -262,7 +262,7 @@ fn main() {
 
     let red_board = Board::new(Faction::Blue, 8, 8, 1, 2);
     let blue_board = Board::new(Faction::Red, 8, 8, 1, 20);
-    let mut cursor = Cursor::new(0, 0);
+    let mut cursor = Cursor::new(0, 0, 1, 2);
     let mut attacks: Vec<Attack> = Vec::new();
     let mut info = Label::new(1, 19, "Hello".to_string());
     let title = Label::new(1, 1, "Rustbuckets v0.1.0".to_string());
