@@ -180,7 +180,7 @@ impl Board {
 
     fn _render_latitude_line(&self, stdout: &mut RawTerminal<Stdout>) {
         let mut output = "+".to_string();
-        for _ in 1..8 {
+        for _ in 0..8 {
             output.push_str("---+");
         }
         write!(
@@ -196,7 +196,7 @@ impl Board {
 
     fn _render_longitude_line(&self, stdout: &mut RawTerminal<Stdout>) {
         let mut output = "|".to_string();
-        for _ in 1..8 {
+        for _ in 0..8 {
             output.push_str("   |");
         }
         write!(
