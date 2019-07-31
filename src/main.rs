@@ -25,38 +25,23 @@ fn translate_game_coords_to_board_coords(coordinates: Coordinates) -> Coordinate
     }
 }
 
-struct Attacks<'a> {
-    attacks: Vec<Attack>,
-    board: &'a Board
-}
-
-impl<'a> Attacks<'a> {
-    fn render(self, stdout: &mut RawTerminal<Stdout>) {
-        for attack in self.attacks {
-            attack.render(stdout, self.board);
-        }
-    }
-
-    fn push(self) {
-    }
-}
-
 #[derive(Clone, Copy, Debug)]
-struct Attack {
+struct Attack<'a> {
     coordinates: Coordinates,
+    board: &'a Board,
     result: AttackResults,
 }
 
-impl Attack {
-    fn new(x: u16, y: u16, base_x: u16, base_y: u16) -> Attack {
+impl<'a> Attack<'a> {
+    fn new(coordinates: Coordinates, board: &Board) -> Attack {
         Attack {
-            coordinates: Coordinates { x, y },
-            base: Coordinates { x: base_x, y: base_y },
+            coordinates,
+            board,
             result: AttackResults::Miss,
         }
     }
 
-    fn render(self, stdout: &mut RawTerminal<Stdout>, board: &Board) {
+    fn render(self, stdout: &mut RawTerminal<Stdout>) {
         let symbol = match self.result {
             AttackResults::Hit => "X",
             AttackResults::Miss => "O",
@@ -425,7 +410,7 @@ fn main() {
                 cursor = cursor.on_move(Heading::East);
             }
             Key::Char('f') => {
-                attacks.push(Attack::new(cursor.coordinates.x, cursor.coordinates.y, red_board.origin.x, red_board.origin.y));
+                attacks.push(Attack::new(cursor.coordinates, &red_board));
             }
             _ => {}
         }
