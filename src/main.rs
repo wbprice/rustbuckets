@@ -75,7 +75,7 @@ enum AttackResults {
     Miss,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 enum Heading {
     North,
     East,
@@ -83,7 +83,7 @@ enum Heading {
     South,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 enum Condition {
     Nominal,
     Damaged,
@@ -266,7 +266,7 @@ impl Label {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Ship<'a> {
     origin: Coordinates,
     board: &'a Board,
@@ -335,12 +335,24 @@ impl<'a> Ship<'a> {
 
     fn render(self, stdout: &mut RawTerminal<Stdout>) {
         for segment in self.segments {
+            let board_coords = translate_game_coords_to_board_coords(segment.coordinates);
+            let screen_coords = Coordinates {
+                x: board_coords.x + self.origin.x,
+                y: board_coords.y + self.origin.y
+            };
 
+            write!(
+                stdout,
+                "{}{}   {}",
+                Goto(screen_coords.x, screen_coords.y),
+                color::Fg(color::Cyan),
+                style::Reset
+            ).unwrap();
         }
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct ShipSegment {
     coordinates: Coordinates,
     condition: Condition
@@ -353,12 +365,7 @@ impl ShipSegment {
             condition: Condition::Nominal
         }
     }
-
-    fn render(self, base: Coordinates) {
-
-    }
 }
-
 
 fn main() {
     let mut stdout = stdout().into_raw_mode().unwrap();
@@ -377,6 +384,7 @@ fn main() {
     let blue_board = Board::new(Faction::Red, Coordinates { x: 1, y: 20 }, 8, 8);
     let mut cursor = Cursor::new(Coordinates { x: 0, y: 0 }, &red_board);
     let mut attacks: Vec<Attack> = Vec::new();
+    let mut ships: Vec<Ship> = Vec::new();
     let mut info = Label::new(1, 19, "Hello".to_string());
     let title = Label::new(1, 1, "Rustbuckets v0.1.0".to_string());
 
@@ -388,51 +396,57 @@ fn main() {
     for attack in attacks.clone() {
         attack.render(&mut stdout);
     }
+    for ship in ships.clone() {
+        ship.render(&mut stdout);
+    }
 
     stdout.flush().unwrap();
 
     // Handle user inputs and render interface
     for c in stdin.keys() {
-        match c.unwrap() {
-            Key::Char('q') => {
-                write!(stdout, "{}", style::Reset).unwrap();
-                break;
-            }
-            Key::Char('w') => {
-                cursor = cursor.on_move(Heading::North);
-            }
-            Key::Char('a') => {
-                cursor = cursor.on_move(Heading::West);
-            }
-            Key::Char('s') => {
-                cursor = cursor.on_move(Heading::South);
-            }
-            Key::Char('d') => {
-                cursor = cursor.on_move(Heading::East);
-            }
-            Key::Char('f') => {
-                attacks.push(Attack::new(cursor.coordinates, &red_board));
-            }
-            _ => {}
+    match c.unwrap() {
+        Key::Char('q') => {
+            write!(stdout, "{}", style::Reset).unwrap();
+            break;
         }
+        Key::Char('w') => {
+            cursor = cursor.on_move(Heading::North);
+        }
+        Key::Char('a') => {
+            cursor = cursor.on_move(Heading::West);
+        }
+        Key::Char('s') => {
+            cursor = cursor.on_move(Heading::South);
+        }
+        Key::Char('d') => {
+            cursor = cursor.on_move(Heading::East);
+        }
+        Key::Char('f') => {
+            attacks.push(Attack::new(cursor.coordinates, &red_board));
+        }
+        _ => {}
+    }
 
-        red_board.render(&mut stdout);
-        blue_board.render(&mut stdout);
-        cursor.render(&mut stdout);
-        info = Label::new(
-            1,
-            19,
-            format!(
-                "({},{})",
-                cursor.coordinates.x,
-                cursor.coordinates.y
-            ),
-        );
-        for attack in attacks.clone() {
-            attack.render(&mut stdout);
-        }
-        info.render(&mut stdout);
-        stdout.flush().unwrap();
+    red_board.render(&mut stdout);
+    blue_board.render(&mut stdout);
+    cursor.render(&mut stdout);
+    info = Label::new(
+        1,
+        19,
+        format!(
+            "({},{})",
+            cursor.coordinates.x,
+            cursor.coordinates.y
+        ),
+    );
+    for attack in attacks.clone() {
+        attack.render(&mut stdout);
+    }
+    for ship in ships.clone() {
+        ship.render(&mut stdout);
+    }
+    info.render(&mut stdout);
+    stdout.flush().unwrap();
     }
 }
 
