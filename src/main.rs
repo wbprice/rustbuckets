@@ -84,9 +84,11 @@ impl Scoreboard {
     }
 
     fn render(self, stdout: &mut RawTerminal<Stdout>) {
-        writeln!(stdout, "{}{}{}Hits: {}{}Misses: {}{}",
+        writeln!(stdout, "{}{}{}{}{}Hits: {}{}Misses: {}{}",
             Goto(self.origin.x, self.origin.y),
+            color::Fg(color::Blue),
             "Blue Team".to_string(),
+            color::Fg(color::White),
             Goto(self.origin.x, self.origin.y + 1),
             self.blue_score.hits,
             Goto(self.origin.x, self.origin.y + 2),
@@ -94,12 +96,14 @@ impl Scoreboard {
             style::Reset
         ).unwrap();
 
-        writeln!(stdout, "{}{}{}Hits: {}{}Misses: {}{}",
+        writeln!(stdout, "{}{}{}{}{}Hits: {}{}Misses: {}{}",
             Goto(self.origin.x, self.origin.y + 4),
+            color::Fg(color::Red),
             "Red Team".to_string(),
+            color::Fg(color::White),
             Goto(self.origin.x, self.origin.y + 5),
             self.red_score.hits,
-            Goto(self.origin.x, self.origin.y + 5),
+            Goto(self.origin.x, self.origin.y + 6),
             self.red_score.misses,
             style::Reset
         ).unwrap();
@@ -458,20 +462,14 @@ fn main() {
     )
     .unwrap();
 
+    // Instantiate game entities
     let red_board = Board::new(Faction::Blue, Coordinates { x: 1, y: 2 }, 8, 8);
     let blue_board = Board::new(Faction::Red, Coordinates { x: 1, y: 20 }, 8, 8);
     let mut cursor = Cursor::new(Coordinates { x: 0, y: 0 }, &red_board);
     let mut attacks: Vec<Attack> = Vec::new();
     let mut scoreboard = Scoreboard::new(Coordinates { x: 38, y: 2});
     let mut ships: Vec<Ship> = Vec::new();
-    let mut info = Label::new(1, 19, "Hello".to_string());
     let title = Label::new(1, 1, "Rustbuckets v0.1.0".to_string());
-
-    red_board.render(&mut stdout);
-    blue_board.render(&mut stdout);
-    info.render(&mut stdout);
-    title.render(&mut stdout);
-    scoreboard.render(&mut stdout);
 
     // Some test ships
     ships.push(Ship::new(
@@ -505,6 +503,11 @@ fn main() {
         2,
     ));
 
+    // Initial render
+    red_board.render(&mut stdout);
+    blue_board.render(&mut stdout);
+    title.render(&mut stdout);
+    scoreboard.render(&mut stdout);
     for ship in ships.clone() {
         ship.render(&mut stdout);
     }
@@ -551,11 +554,6 @@ fn main() {
 
         red_board.render(&mut stdout);
         blue_board.render(&mut stdout);
-        info = Label::new(
-            1,
-            19,
-            format!("Coords. {},{}", cursor.coordinates.x, cursor.coordinates.y),
-        );
         for ship in ships.clone() {
             ship.render(&mut stdout);
         }
@@ -563,7 +561,6 @@ fn main() {
             attack.render(&mut stdout);
         }
         cursor.render(&mut stdout);
-        info.render(&mut stdout);
         scoreboard.render(&mut stdout);
         stdout.flush().unwrap();
     }
