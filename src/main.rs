@@ -37,7 +37,8 @@ impl<'a> Attack<'a> {
         let mut hit = false;
         for ship in ships {
             for segment in ship.segments {
-                if segment.coordinates.x == coordinates.x && segment.coordinates.y == coordinates.y {
+                if segment.coordinates.x == coordinates.x && segment.coordinates.y == coordinates.y
+                {
                     hit = true;
                 }
             }
@@ -47,13 +48,13 @@ impl<'a> Attack<'a> {
             Attack {
                 coordinates,
                 board,
-                result: AttackResults::Hit
+                result: AttackResults::Hit,
             }
         } else {
             Attack {
                 coordinates,
                 board,
-                result: AttackResults::Miss
+                result: AttackResults::Miss,
             }
         }
     }
@@ -66,11 +67,11 @@ impl<'a> Attack<'a> {
 
         let board_coords = translate_game_coords_to_board_coords(Coordinates {
             x: self.coordinates.x,
-            y: self.coordinates.y
+            y: self.coordinates.y,
         });
         let screen_coords = Coordinates {
             x: board_coords.x + self.board.origin.x + 1,
-            y: board_coords.y + self.board.origin.y
+            y: board_coords.y + self.board.origin.y,
         };
 
         write!(
@@ -100,26 +101,15 @@ enum Heading {
     South,
 }
 
-#[derive(Debug, Clone)]
-enum Condition {
-    Nominal,
-    Damaged,
-    Destroyed
-}
-
 #[derive(Debug, Copy, Clone)]
-
-struct Cursor<'a>{
+struct Cursor<'a> {
     coordinates: Coordinates,
-    board: &'a Board
+    board: &'a Board,
 }
 
 impl<'a> Cursor<'a> {
     fn new(coordinates: Coordinates, board: &'a Board) -> Cursor<'a> {
-        Cursor {
-            coordinates,
-            board
-        }
+        Cursor { coordinates, board }
     }
 
     fn on_move(self, heading: Heading) -> Cursor<'a> {
@@ -131,7 +121,7 @@ impl<'a> Cursor<'a> {
                             x: self.coordinates.x,
                             y: self.coordinates.y - 1,
                         },
-                        board: self.board
+                        board: self.board,
                     }
                 } else {
                     self
@@ -144,7 +134,7 @@ impl<'a> Cursor<'a> {
                             x: self.coordinates.x + 1,
                             y: self.coordinates.y,
                         },
-                        board: self.board
+                        board: self.board,
                     }
                 } else {
                     self
@@ -157,7 +147,7 @@ impl<'a> Cursor<'a> {
                             x: self.coordinates.x - 1,
                             y: self.coordinates.y,
                         },
-                        board: self.board
+                        board: self.board,
                     }
                 } else {
                     self
@@ -210,7 +200,7 @@ impl Board {
             faction,
             origin,
             height,
-            width
+            width,
         }
     }
 
@@ -288,8 +278,7 @@ struct Ship<'a> {
     origin: Coordinates,
     board: &'a Board,
     heading: Heading,
-    condition: Condition,
-    segments: Vec<ShipSegment>
+    segments: Vec<ShipSegment>,
 }
 
 impl<'a> Ship<'a> {
@@ -298,46 +287,22 @@ impl<'a> Ship<'a> {
         // For n segments in
         for n in 0..length {
             match heading {
-                Heading::North => {
-                    segments.push(
-                        ShipSegment::new(
-                            Coordinates {
-                                x: origin.x,
-                                y: origin.y - n
-                            }
-                        )
-                    )
-                },
-                Heading::East => {
-                    segments.push(
-                        ShipSegment::new(
-                            Coordinates {
-                                x: origin.x + n,
-                                y: origin.y
-                            }
-                        )
-                    )
-                },
-                Heading::West => {
-                    segments.push(
-                        ShipSegment::new(
-                            Coordinates {
-                                x: origin.x - n,
-                                y: origin.y
-                            }
-                        )
-                    )
-                },
-                Heading::South => {
-                    segments.push(
-                        ShipSegment::new(
-                            Coordinates {
-                                x: origin.x,
-                                y: origin.y + n
-                            }
-                        )
-                    )
-                }
+                Heading::North => segments.push(ShipSegment::new(Coordinates {
+                    x: origin.x,
+                    y: origin.y - n,
+                })),
+                Heading::East => segments.push(ShipSegment::new(Coordinates {
+                    x: origin.x + n,
+                    y: origin.y,
+                })),
+                Heading::West => segments.push(ShipSegment::new(Coordinates {
+                    x: origin.x - n,
+                    y: origin.y,
+                })),
+                Heading::South => segments.push(ShipSegment::new(Coordinates {
+                    x: origin.x,
+                    y: origin.y + n,
+                })),
             }
         }
 
@@ -345,8 +310,7 @@ impl<'a> Ship<'a> {
             origin,
             board,
             heading,
-            condition: Condition::Nominal,
-            segments
+            segments,
         }
     }
 
@@ -355,7 +319,7 @@ impl<'a> Ship<'a> {
             let board_coords = translate_game_coords_to_board_coords(segment.coordinates);
             let screen_coords = Coordinates {
                 x: board_coords.x + self.board.origin.x,
-                y: board_coords.y + self.board.origin.y
+                y: board_coords.y + self.board.origin.y,
             };
 
             write!(
@@ -364,7 +328,8 @@ impl<'a> Ship<'a> {
                 Goto(screen_coords.x, screen_coords.y),
                 color::Bg(color::Red),
                 style::Reset
-            ).unwrap();
+            )
+            .unwrap();
         }
     }
 }
@@ -372,15 +337,11 @@ impl<'a> Ship<'a> {
 #[derive(Debug, Clone)]
 struct ShipSegment {
     coordinates: Coordinates,
-    condition: Condition
 }
 
 impl ShipSegment {
     fn new(coordinates: Coordinates) -> ShipSegment {
-        ShipSegment {
-            coordinates,
-            condition: Condition::Nominal
-        }
+        ShipSegment { coordinates }
     }
 }
 
@@ -411,11 +372,36 @@ fn main() {
     title.render(&mut stdout);
 
     // Some test ships
-    ships.push(Ship::new(Coordinates { x: 2, y: 0}, &red_board, Heading::South, 3));
-    ships.push(Ship::new(Coordinates { x: 3, y: 3}, &red_board, Heading::East, 3));
-    ships.push(Ship::new(Coordinates { x: 0, y: 7}, &red_board, Heading::North, 5));
-    ships.push(Ship::new(Coordinates { x: 7, y: 7}, &red_board, Heading::North, 4));
-    ships.push(Ship::new(Coordinates { x: 4, y: 6}, &red_board, Heading::West, 2));
+    ships.push(Ship::new(
+        Coordinates { x: 2, y: 0 },
+        &red_board,
+        Heading::South,
+        3,
+    ));
+    ships.push(Ship::new(
+        Coordinates { x: 3, y: 3 },
+        &red_board,
+        Heading::East,
+        3,
+    ));
+    ships.push(Ship::new(
+        Coordinates { x: 0, y: 7 },
+        &red_board,
+        Heading::North,
+        5,
+    ));
+    ships.push(Ship::new(
+        Coordinates { x: 7, y: 7 },
+        &red_board,
+        Heading::North,
+        4,
+    ));
+    ships.push(Ship::new(
+        Coordinates { x: 4, y: 6 },
+        &red_board,
+        Heading::West,
+        2,
+    ));
 
     for ship in ships.clone() {
         ship.render(&mut stdout);
@@ -457,11 +443,7 @@ fn main() {
         info = Label::new(
             1,
             19,
-            format!(
-                "Coords. {},{}",
-                cursor.coordinates.x,
-                cursor.coordinates.y
-            ),
+            format!("Coords. {},{}", cursor.coordinates.x, cursor.coordinates.y),
         );
         for ship in ships.clone() {
             ship.render(&mut stdout);
@@ -514,7 +496,7 @@ mod tests {
     #[test]
     fn test_create_ship_east_0_0() {
         let origin = Coordinates { x: 0, y: 0 };
-        let board = Board::new(Faction::Blue, Coordinates { x: 1, y: 2}, 8, 8);
+        let board = Board::new(Faction::Blue, Coordinates { x: 1, y: 2 }, 8, 8);
         let ship = Ship::new(origin, &board, Heading::East, 3);
 
         assert_eq!(ship.segments.len(), 3);
@@ -529,7 +511,7 @@ mod tests {
     #[test]
     fn test_create_ship_south_0_0() {
         let origin = Coordinates { x: 0, y: 0 };
-        let board = Board::new(Faction::Blue, Coordinates { x: 1, y: 2}, 8, 8);
+        let board = Board::new(Faction::Blue, Coordinates { x: 1, y: 2 }, 8, 8);
         let ship = Ship::new(origin, &board, Heading::South, 3);
 
         assert_eq!(ship.segments.len(), 3);
