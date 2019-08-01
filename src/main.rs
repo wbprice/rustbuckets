@@ -5,12 +5,119 @@ use termion::input::TermRead;
 use termion::raw::{IntoRawMode, RawTerminal};
 use termion::{color, style};
 
-#[derive(Debug)]
+#[derive(Clone, Copy)]
+struct Scores {
+    hits: u16,
+    misses: u16,
+}
+
+impl Scores {
+    fn new() -> Scores {
+        Scores { hits: 0, misses: 0 }
+    }
+}
+
+#[derive(Clone, Copy)]
+struct Scoreboard {
+    blue_score: Scores,
+    red_score: Scores,
+    turn: Faction,
+    origin: Coordinates,
+}
+
+impl Scoreboard {
+    fn new(origin: Coordinates) -> Scoreboard {
+        Scoreboard {
+            blue_score: Scores::new(),
+            red_score: Scores::new(),
+            turn: Faction::Blue,
+            origin,
+        }
+    }
+
+    fn increment_hits(self) -> Scoreboard {
+        match self.turn {
+            Faction::Blue => {
+                let mut scoreboard = self.clone();
+                scoreboard.blue_score.hits = scoreboard.blue_score.hits + 1;
+                scoreboard
+            }
+            Faction::Red => {
+                let mut scoreboard = self.clone();
+                scoreboard.red_score.hits = scoreboard.red_score.hits + 1;
+                scoreboard
+            }
+        }
+    }
+
+    fn increment_misses(self) -> Scoreboard {
+        match self.turn {
+            Faction::Blue => {
+                let mut scoreboard = self.clone();
+                scoreboard.blue_score.misses = scoreboard.blue_score.misses + 1;
+                scoreboard
+            }
+            Faction::Red => {
+                let mut scoreboard = self.clone();
+                scoreboard.red_score.misses = scoreboard.red_score.misses + 1;
+                scoreboard
+            }
+        }
+    }
+
+    fn switch_players(self) -> Scoreboard {
+        match self.turn {
+            Faction::Blue => {
+                let mut scoreboard = self.clone();
+                scoreboard.turn = Faction::Red;
+                scoreboard
+            }
+            Faction::Red => {
+                let mut scoreboard = self.clone();
+                scoreboard.turn = Faction::Blue;
+                scoreboard
+            }
+        }
+    }
+
+    fn render(self, stdout: &mut RawTerminal<Stdout>) {
+        writeln!(
+            stdout,
+            "{}{}{}{}{}Hits: {}{}Misses: {}{}",
+            Goto(self.origin.x, self.origin.y),
+            color::Fg(color::Blue),
+            "Blue Team".to_string(),
+            color::Fg(color::White),
+            Goto(self.origin.x, self.origin.y + 1),
+            self.blue_score.hits,
+            Goto(self.origin.x, self.origin.y + 2),
+            self.blue_score.misses,
+            style::Reset
+        )
+        .unwrap();
+
+        writeln!(
+            stdout,
+            "{}{}{}{}{}Hits: {}{}Misses: {}{}",
+            Goto(self.origin.x, self.origin.y + 4),
+            color::Fg(color::Red),
+            "Red Team".to_string(),
+            color::Fg(color::White),
+            Goto(self.origin.x, self.origin.y + 5),
+            self.red_score.hits,
+            Goto(self.origin.x, self.origin.y + 6),
+            self.red_score.misses,
+            style::Reset
+        )
+        .unwrap();
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
 enum Faction {
     Red,
     Blue,
 }
-
 
 #[derive(Debug, Copy, Clone)]
 struct Coordinates {
@@ -33,27 +140,45 @@ struct Attack<'a> {
 }
 
 impl<'a> Attack<'a> {
-    fn new(coordinates: Coordinates, board: &Board) -> Attack {
-        Attack {
-            coordinates,
-            board,
-            result: AttackResults::Miss,
+    fn new(coordinates: Coordinates, board: &'a Board, ships: Vec<Ship>) -> Attack<'a> {
+        let mut hit = false;
+        for ship in ships {
+            for segment in ship.segments {
+                if segment.coordinates.x == coordinates.x && segment.coordinates.y == coordinates.y
+                {
+                    hit = true;
+                }
+            }
+        }
+
+        if hit {
+            Attack {
+                coordinates,
+                board,
+                result: AttackResults::Hit,
+            }
+        } else {
+            Attack {
+                coordinates,
+                board,
+                result: AttackResults::Miss,
+            }
         }
     }
 
     fn render(self, stdout: &mut RawTerminal<Stdout>) {
         let symbol = match self.result {
             AttackResults::Hit => "X",
-            AttackResults::Miss => "O",
+            AttackResults::Miss => "^",
         };
 
         let board_coords = translate_game_coords_to_board_coords(Coordinates {
             x: self.coordinates.x,
-            y: self.coordinates.y
+            y: self.coordinates.y,
         });
         let screen_coords = Coordinates {
             x: board_coords.x + self.board.origin.x + 1,
-            y: board_coords.y + self.board.origin.y
+            y: board_coords.y + self.board.origin.y,
         };
 
         write!(
@@ -83,26 +208,15 @@ enum Heading {
     South,
 }
 
-#[derive(Debug, Clone)]
-enum Condition {
-    Nominal,
-    Damaged,
-    Destroyed
-}
-
 #[derive(Debug, Copy, Clone)]
-
-struct Cursor<'a>{
+struct Cursor<'a> {
     coordinates: Coordinates,
-    board: &'a Board
+    board: &'a Board,
 }
 
 impl<'a> Cursor<'a> {
     fn new(coordinates: Coordinates, board: &'a Board) -> Cursor<'a> {
-        Cursor {
-            coordinates,
-            board
-        }
+        Cursor { coordinates, board }
     }
 
     fn on_move(self, heading: Heading) -> Cursor<'a> {
@@ -114,7 +228,7 @@ impl<'a> Cursor<'a> {
                             x: self.coordinates.x,
                             y: self.coordinates.y - 1,
                         },
-                        board: self.board
+                        board: self.board,
                     }
                 } else {
                     self
@@ -127,7 +241,7 @@ impl<'a> Cursor<'a> {
                             x: self.coordinates.x + 1,
                             y: self.coordinates.y,
                         },
-                        board: self.board
+                        board: self.board,
                     }
                 } else {
                     self
@@ -140,7 +254,7 @@ impl<'a> Cursor<'a> {
                             x: self.coordinates.x - 1,
                             y: self.coordinates.y,
                         },
-                        board: self.board
+                        board: self.board,
                     }
                 } else {
                     self
@@ -193,7 +307,7 @@ impl Board {
             faction,
             origin,
             height,
-            width
+            width,
         }
     }
 
@@ -271,8 +385,7 @@ struct Ship<'a> {
     origin: Coordinates,
     board: &'a Board,
     heading: Heading,
-    condition: Condition,
-    segments: Vec<ShipSegment>
+    segments: Vec<ShipSegment>,
 }
 
 impl<'a> Ship<'a> {
@@ -281,46 +394,22 @@ impl<'a> Ship<'a> {
         // For n segments in
         for n in 0..length {
             match heading {
-                Heading::North => {
-                    segments.push(
-                        ShipSegment::new(
-                            Coordinates {
-                                x: origin.x,
-                                y: origin.y - n
-                            }
-                        )
-                    )
-                },
-                Heading::East => {
-                    segments.push(
-                        ShipSegment::new(
-                            Coordinates {
-                                x: origin.x + n,
-                                y: origin.y
-                            }
-                        )
-                    )
-                },
-                Heading::West => {
-                    segments.push(
-                        ShipSegment::new(
-                            Coordinates {
-                                x: origin.x - n,
-                                y: origin.y
-                            }
-                        )
-                    )
-                },
-                Heading::South => {
-                    segments.push(
-                        ShipSegment::new(
-                            Coordinates {
-                                x: origin.x,
-                                y: origin.y + n
-                            }
-                        )
-                    )
-                }
+                Heading::North => segments.push(ShipSegment::new(Coordinates {
+                    x: origin.x,
+                    y: origin.y - n,
+                })),
+                Heading::East => segments.push(ShipSegment::new(Coordinates {
+                    x: origin.x + n,
+                    y: origin.y,
+                })),
+                Heading::West => segments.push(ShipSegment::new(Coordinates {
+                    x: origin.x - n,
+                    y: origin.y,
+                })),
+                Heading::South => segments.push(ShipSegment::new(Coordinates {
+                    x: origin.x,
+                    y: origin.y + n,
+                })),
             }
         }
 
@@ -328,8 +417,7 @@ impl<'a> Ship<'a> {
             origin,
             board,
             heading,
-            condition: Condition::Nominal,
-            segments
+            segments,
         }
     }
 
@@ -338,7 +426,7 @@ impl<'a> Ship<'a> {
             let board_coords = translate_game_coords_to_board_coords(segment.coordinates);
             let screen_coords = Coordinates {
                 x: board_coords.x + self.board.origin.x,
-                y: board_coords.y + self.board.origin.y
+                y: board_coords.y + self.board.origin.y,
             };
 
             write!(
@@ -347,7 +435,8 @@ impl<'a> Ship<'a> {
                 Goto(screen_coords.x, screen_coords.y),
                 color::Bg(color::Red),
                 style::Reset
-            ).unwrap();
+            )
+            .unwrap();
         }
     }
 }
@@ -355,15 +444,11 @@ impl<'a> Ship<'a> {
 #[derive(Debug, Clone)]
 struct ShipSegment {
     coordinates: Coordinates,
-    condition: Condition
 }
 
 impl ShipSegment {
     fn new(coordinates: Coordinates) -> ShipSegment {
-        ShipSegment {
-            coordinates,
-            condition: Condition::Nominal
-        }
+        ShipSegment { coordinates }
     }
 }
 
@@ -380,26 +465,52 @@ fn main() {
     )
     .unwrap();
 
+    // Instantiate game entities
     let red_board = Board::new(Faction::Blue, Coordinates { x: 1, y: 2 }, 8, 8);
     let blue_board = Board::new(Faction::Red, Coordinates { x: 1, y: 20 }, 8, 8);
     let mut cursor = Cursor::new(Coordinates { x: 0, y: 0 }, &red_board);
     let mut attacks: Vec<Attack> = Vec::new();
+    let mut scoreboard = Scoreboard::new(Coordinates { x: 38, y: 2 });
     let mut ships: Vec<Ship> = Vec::new();
-    let mut info = Label::new(1, 19, "Hello".to_string());
     let title = Label::new(1, 1, "Rustbuckets v0.1.0".to_string());
 
+    // Some test ships
+    ships.push(Ship::new(
+        Coordinates { x: 2, y: 0 },
+        &red_board,
+        Heading::South,
+        3,
+    ));
+    ships.push(Ship::new(
+        Coordinates { x: 3, y: 3 },
+        &red_board,
+        Heading::East,
+        3,
+    ));
+    ships.push(Ship::new(
+        Coordinates { x: 0, y: 7 },
+        &red_board,
+        Heading::North,
+        5,
+    ));
+    ships.push(Ship::new(
+        Coordinates { x: 7, y: 7 },
+        &red_board,
+        Heading::North,
+        4,
+    ));
+    ships.push(Ship::new(
+        Coordinates { x: 4, y: 6 },
+        &red_board,
+        Heading::West,
+        2,
+    ));
+
+    // Initial render
     red_board.render(&mut stdout);
     blue_board.render(&mut stdout);
-    info.render(&mut stdout);
     title.render(&mut stdout);
-
-    // Some test ships
-    ships.push(Ship::new(Coordinates { x: 2, y: 0}, &red_board, Heading::South, 3));
-    ships.push(Ship::new(Coordinates { x: 3, y: 3}, &red_board, Heading::East, 3));
-    ships.push(Ship::new(Coordinates { x: 0, y: 7}, &red_board, Heading::North, 5));
-    ships.push(Ship::new(Coordinates { x: 7, y: 7}, &red_board, Heading::North, 4));
-    ships.push(Ship::new(Coordinates { x: 4, y: 6}, &red_board, Heading::West, 2));
-
+    scoreboard.render(&mut stdout);
     for ship in ships.clone() {
         ship.render(&mut stdout);
     }
@@ -430,22 +541,18 @@ fn main() {
                 cursor = cursor.on_move(Heading::East);
             }
             Key::Char('f') => {
-                attacks.push(Attack::new(cursor.coordinates, &red_board));
+                let attack = Attack::new(cursor.coordinates, &red_board, ships.clone());
+                scoreboard = match attack.result {
+                    AttackResults::Hit => scoreboard.increment_hits(),
+                    AttackResults::Miss => scoreboard.increment_misses(),
+                };
+                attacks.push(attack);
             }
             _ => {}
         }
 
         red_board.render(&mut stdout);
         blue_board.render(&mut stdout);
-        info = Label::new(
-            1,
-            19,
-            format!(
-                "Coords. {},{}",
-                cursor.coordinates.x,
-                cursor.coordinates.y
-            ),
-        );
         for ship in ships.clone() {
             ship.render(&mut stdout);
         }
@@ -453,7 +560,7 @@ fn main() {
             attack.render(&mut stdout);
         }
         cursor.render(&mut stdout);
-        info.render(&mut stdout);
+        scoreboard.render(&mut stdout);
         stdout.flush().unwrap();
     }
 }
@@ -497,7 +604,7 @@ mod tests {
     #[test]
     fn test_create_ship_east_0_0() {
         let origin = Coordinates { x: 0, y: 0 };
-        let board = Board::new(Faction::Blue, Coordinates { x: 1, y: 2}, 8, 8);
+        let board = Board::new(Faction::Blue, Coordinates { x: 1, y: 2 }, 8, 8);
         let ship = Ship::new(origin, &board, Heading::East, 3);
 
         assert_eq!(ship.segments.len(), 3);
@@ -512,7 +619,7 @@ mod tests {
     #[test]
     fn test_create_ship_south_0_0() {
         let origin = Coordinates { x: 0, y: 0 };
-        let board = Board::new(Faction::Blue, Coordinates { x: 1, y: 2}, 8, 8);
+        let board = Board::new(Faction::Blue, Coordinates { x: 1, y: 2 }, 8, 8);
         let ship = Ship::new(origin, &board, Heading::South, 3);
 
         assert_eq!(ship.segments.len(), 3);
