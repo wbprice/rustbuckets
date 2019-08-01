@@ -8,15 +8,12 @@ use termion::{color, style};
 #[derive(Clone, Copy)]
 struct Scores {
     hits: u16,
-    misses: u16
+    misses: u16,
 }
 
 impl Scores {
     fn new() -> Scores {
-        Scores {
-            hits: 0,
-            misses: 0
-        }
+        Scores { hits: 0, misses: 0 }
     }
 }
 
@@ -25,7 +22,7 @@ struct Scoreboard {
     blue_score: Scores,
     red_score: Scores,
     turn: Faction,
-    origin: Coordinates
+    origin: Coordinates,
 }
 
 impl Scoreboard {
@@ -34,7 +31,7 @@ impl Scoreboard {
             blue_score: Scores::new(),
             red_score: Scores::new(),
             turn: Faction::Blue,
-            origin
+            origin,
         }
     }
 
@@ -44,7 +41,7 @@ impl Scoreboard {
                 let mut scoreboard = self.clone();
                 scoreboard.blue_score.hits = scoreboard.blue_score.hits + 1;
                 scoreboard
-            },
+            }
             Faction::Red => {
                 let mut scoreboard = self.clone();
                 scoreboard.red_score.hits = scoreboard.red_score.hits + 1;
@@ -59,7 +56,7 @@ impl Scoreboard {
                 let mut scoreboard = self.clone();
                 scoreboard.blue_score.misses = scoreboard.blue_score.misses + 1;
                 scoreboard
-            },
+            }
             Faction::Red => {
                 let mut scoreboard = self.clone();
                 scoreboard.red_score.misses = scoreboard.red_score.misses + 1;
@@ -74,7 +71,7 @@ impl Scoreboard {
                 let mut scoreboard = self.clone();
                 scoreboard.turn = Faction::Red;
                 scoreboard
-            },
+            }
             Faction::Red => {
                 let mut scoreboard = self.clone();
                 scoreboard.turn = Faction::Blue;
@@ -84,7 +81,9 @@ impl Scoreboard {
     }
 
     fn render(self, stdout: &mut RawTerminal<Stdout>) {
-        writeln!(stdout, "{}{}{}{}{}Hits: {}{}Misses: {}{}",
+        writeln!(
+            stdout,
+            "{}{}{}{}{}Hits: {}{}Misses: {}{}",
             Goto(self.origin.x, self.origin.y),
             color::Fg(color::Blue),
             "Blue Team".to_string(),
@@ -94,9 +93,12 @@ impl Scoreboard {
             Goto(self.origin.x, self.origin.y + 2),
             self.blue_score.misses,
             style::Reset
-        ).unwrap();
+        )
+        .unwrap();
 
-        writeln!(stdout, "{}{}{}{}{}Hits: {}{}Misses: {}{}",
+        writeln!(
+            stdout,
+            "{}{}{}{}{}Hits: {}{}Misses: {}{}",
             Goto(self.origin.x, self.origin.y + 4),
             color::Fg(color::Red),
             "Red Team".to_string(),
@@ -106,7 +108,8 @@ impl Scoreboard {
             Goto(self.origin.x, self.origin.y + 6),
             self.red_score.misses,
             style::Reset
-        ).unwrap();
+        )
+        .unwrap();
     }
 }
 
@@ -467,7 +470,7 @@ fn main() {
     let blue_board = Board::new(Faction::Red, Coordinates { x: 1, y: 20 }, 8, 8);
     let mut cursor = Cursor::new(Coordinates { x: 0, y: 0 }, &red_board);
     let mut attacks: Vec<Attack> = Vec::new();
-    let mut scoreboard = Scoreboard::new(Coordinates { x: 38, y: 2});
+    let mut scoreboard = Scoreboard::new(Coordinates { x: 38, y: 2 });
     let mut ships: Vec<Ship> = Vec::new();
     let title = Label::new(1, 1, "Rustbuckets v0.1.0".to_string());
 
@@ -540,12 +543,8 @@ fn main() {
             Key::Char('f') => {
                 let attack = Attack::new(cursor.coordinates, &red_board, ships.clone());
                 scoreboard = match attack.result {
-                    AttackResults::Hit => {
-                        scoreboard.increment_hits()
-                    },
-                    AttackResults::Miss => {
-                        scoreboard.increment_misses()
-                    }
+                    AttackResults::Hit => scoreboard.increment_hits(),
+                    AttackResults::Miss => scoreboard.increment_misses(),
                 };
                 attacks.push(attack);
             }
