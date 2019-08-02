@@ -1,4 +1,4 @@
-use std::io::{stdin, stdout, Stdout, Write};
+use std::io::{stdin, stdout, Stdout, Stdin, Write};
 use termion::cursor::Goto;
 use termion::event::Key;
 use termion::input::TermRead;
@@ -17,65 +17,74 @@ impl Scores {
     }
 }
 
+#[derive(Copy, Clone)]
+enum Mode {
+    Title,
+    Play,
+    Endscreen
+}
+
 #[derive(Clone, Copy)]
-struct Scoreboard {
+struct Game {
     blue_score: Scores,
     red_score: Scores,
     turn: Faction,
     origin: Coordinates,
+    mode: Mode
 }
 
-impl Scoreboard {
-    fn new(origin: Coordinates) -> Scoreboard {
-        Scoreboard {
+impl Game {
+    fn new(origin: Coordinates) -> Game {
+        Game {
             blue_score: Scores::new(),
             red_score: Scores::new(),
             turn: Faction::Blue,
             origin,
+            mode: Mode::Play
         }
     }
 
-    fn increment_hits(self) -> Scoreboard {
+    fn increment_hits(self) -> Game {
         match self.turn {
             Faction::Blue => {
-                let mut scoreboard = self.clone();
-                scoreboard.blue_score.hits = scoreboard.blue_score.hits + 1;
-                scoreboard
+                let mut game = self.clone();
+                game.blue_score.hits = game.blue_score.hits + 1;
+                game
             }
             Faction::Red => {
-                let mut scoreboard = self.clone();
-                scoreboard.red_score.hits = scoreboard.red_score.hits + 1;
-                scoreboard
-            }
-        }
-    }
-
-    fn increment_misses(self) -> Scoreboard {
-        match self.turn {
-            Faction::Blue => {
-                let mut scoreboard = self.clone();
-                scoreboard.blue_score.misses = scoreboard.blue_score.misses + 1;
-                scoreboard
-            }
-            Faction::Red => {
-                let mut scoreboard = self.clone();
-                scoreboard.red_score.misses = scoreboard.red_score.misses + 1;
-                scoreboard
+                let mut game = self.clone();
+                game.red_score.hits = game.red_score.hits + 1;
+                game
             }
         }
     }
 
-    fn switch_players(self) -> Scoreboard {
+    fn increment_misses(self) -> Game {
         match self.turn {
             Faction::Blue => {
-                let mut scoreboard = self.clone();
-                scoreboard.turn = Faction::Red;
-                scoreboard
+                let mut game = self.clone();
+                game.blue_score.misses = game.blue_score.misses + 1;
+                game
             }
             Faction::Red => {
-                let mut scoreboard = self.clone();
-                scoreboard.turn = Faction::Blue;
-                scoreboard
+                let mut game = self.clone();
+                game.red_score.misses = game.red_score.misses + 1;
+                game
+            }
+        }
+    }
+
+    fn switch_players(self) -> Game {
+        match self.turn {
+            Faction::Blue => {
+                let mut game = self.clone();
+                game.turn = Faction::Red;
+                game
+            }
+            Faction::Red => {
+                let mut game = self.clone();
+                game.turn = Faction::Blue;
+                game
             }
         }
     }
@@ -452,25 +461,12 @@ impl ShipSegment {
     }
 }
 
-fn main() {
-    let mut stdout = stdout().into_raw_mode().unwrap();
-    let stdin = stdin();
-
-    write!(
-        stdout,
-        "{}{}{}",
-        termion::clear::All,
-        Goto(1, 1),
-        termion::cursor::Hide
-    )
-    .unwrap();
-
+fn game_loop(mut game: Game, stdin: Stdin, mut stdout: &mut RawTerminal<Stdout>) {
     // Instantiate game entities
     let red_board = Board::new(Faction::Blue, Coordinates { x: 1, y: 2 }, 8, 8);
     let blue_board = Board::new(Faction::Red, Coordinates { x: 1, y: 20 }, 8, 8);
     let mut cursor = Cursor::new(Coordinates { x: 0, y: 0 }, &red_board);
     let mut attacks: Vec<Attack> = Vec::new();
-    let mut scoreboard = Scoreboard::new(Coordinates { x: 38, y: 2 });
     let mut ships: Vec<Ship> = Vec::new();
     let title = Label::new(1, 1, "Rustbuckets v0.1.0".to_string());
 
@@ -510,7 +506,7 @@ fn main() {
     red_board.render(&mut stdout);
     blue_board.render(&mut stdout);
     title.render(&mut stdout);
-    scoreboard.render(&mut stdout);
+    game.render(&mut stdout);
     for ship in ships.clone() {
         ship.render(&mut stdout);
     }
@@ -542,9 +538,9 @@ fn main() {
             }
             Key::Char('f') => {
                 let attack = Attack::new(cursor.coordinates, &red_board, ships.clone());
-                scoreboard = match attack.result {
-                    AttackResults::Hit => scoreboard.increment_hits(),
-                    AttackResults::Miss => scoreboard.increment_misses(),
+                game = match attack.result {
+                    AttackResults::Hit => game.increment_hits(),
+                    AttackResults::Miss => game.increment_misses(),
                 };
                 attacks.push(attack);
             }
@@ -560,8 +556,32 @@ fn main() {
             attack.render(&mut stdout);
         }
         cursor.render(&mut stdout);
-        scoreboard.render(&mut stdout);
+        game.render(&mut stdout);
         stdout.flush().unwrap();
+    }
+}
+
+fn main() {
+    let mut stdout = stdout().into_raw_mode().unwrap();
+    let stdin = stdin();
+
+    write!(
+        stdout,
+        "{}{}{}",
+        termion::clear::All,
+        Goto(1, 1),
+        termion::cursor::Hide
+    )
+    .unwrap();
+
+    let mut game = Game::new(Coordinates { x: 38, y: 2 });
+    
+    loop {
+        match game.mode {
+            Mode::Title => (),
+            Mode::Play => game_loop(game, stdin, &mut stdout),
+            Mode::Endscreen => ()
+        }
     }
 }
 
