@@ -20,7 +20,7 @@ impl Scores {
 #[derive(Copy, Clone)]
 enum Mode {
     Title,
-    Play,
+    Game,
     Endscreen
 }
 
@@ -40,7 +40,7 @@ impl Game {
             red_score: Scores::new(),
             turn: Faction::Blue,
             origin,
-            mode: Mode::Play
+            mode: Mode::Title
         }
     }
 
@@ -84,6 +84,24 @@ impl Game {
             Faction::Red => {
                 let mut game = self.clone();
                 game.turn = Faction::Blue;
+                game
+            }
+        }
+    }
+
+    fn toggle_mode(self, mode: Mode) -> Game {
+        let mut game = self.clone();
+        match mode {
+            Mode::Title => {
+                game.mode = Mode::Game;
+                game
+            },
+            Mode::Game => {
+                game.mode = Mode::Endscreen;
+                game
+            },
+            Mode::Endscreen => {
+                game.mode = Mode::Title;
                 game
             }
         }
@@ -369,9 +387,9 @@ struct Label {
 }
 
 impl Label {
-    fn new(x: u16, y: u16, content: String) -> Label {
+    fn new(origin: Coordinates, content: String) -> Label {
         Label {
-            origin: Coordinates { x, y },
+            origin,
             content,
         }
     }
@@ -468,7 +486,7 @@ fn game_loop(mut game: Game, stdin: Stdin, mut stdout: &mut RawTerminal<Stdout>)
     let mut cursor = Cursor::new(Coordinates { x: 0, y: 0 }, &red_board);
     let mut attacks: Vec<Attack> = Vec::new();
     let mut ships: Vec<Ship> = Vec::new();
-    let title = Label::new(1, 1, "Rustbuckets v0.1.0".to_string());
+    let title = Label::new(Coordinates { x: 1, y: 1}, "Rustbuckets v0.1.0".to_string());
 
     // Some test ships
     ships.push(Ship::new(
@@ -561,26 +579,66 @@ fn game_loop(mut game: Game, stdin: Stdin, mut stdout: &mut RawTerminal<Stdout>)
     }
 }
 
+
 fn main() {
     let mut stdout = stdout().into_raw_mode().unwrap();
     let stdin = stdin();
 
-    write!(
-        stdout,
-        "{}{}{}",
-        termion::clear::All,
-        Goto(1, 1),
-        termion::cursor::Hide
-    )
-    .unwrap();
-
     let mut game = Game::new(Coordinates { x: 38, y: 2 });
-    
-    loop {
-        match game.mode {
-            Mode::Title => (),
-            Mode::Play => game_loop(game, stdin, &mut stdout),
-            Mode::Endscreen => ()
+
+    match game.mode {
+        Mode::Title => {
+            let title = Label::new(
+                Coordinates { x: 1, y: 1},
+                "Rustbuckets v0.1.0".to_string()
+            );
+            let instructions = Label::new(
+                Coordinates { x: 1, y: 2},
+                "Press F to start".to_string()
+            );
+
+            write!(
+                stdout,
+                "{}{}{}",
+                termion::clear::All,
+                Goto(1, 1),
+                termion::cursor::Hide
+            )
+            .unwrap();
+
+            title.render(&mut stdout);
+            instructions.render(&mut stdout);
+
+            stdout.flush().unwrap();
+
+            for c in stdin.keys() {
+                match c.unwrap() {
+                    Key::Char('q') => {
+                        write!(stdout, "{}", style::Reset).unwrap();
+                        break;
+                    },
+                    Key::Char('f') => {
+                        game = game.toggle_mode(Mode::Game);
+                    },
+                    _ => {}
+                }
+
+                title.render(&mut stdout);
+                instructions.render(&mut stdout);
+                stdout.flush().unwrap();
+            }
+        },
+        Mode::Game => {
+            let title = Label::new(
+                Coordinates { x: 1, y: 1},
+                "Rustbuckets v0.1.0".to_string()
+            );
+
+            title.render(&mut stdout);
+            stdout.flush().unwrap();
+        },
+        Mode::Endscreen => {
+
         }
     }
 }
