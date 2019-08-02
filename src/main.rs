@@ -5,6 +5,7 @@ use termion::input::TermRead;
 use termion::raw::{IntoRawMode, RawTerminal};
 use termion::{color, style};
 
+
 #[derive(Clone, Copy)]
 struct Scores {
     hits: u16,
@@ -588,9 +589,16 @@ fn main() {
 
     match game.mode {
         Mode::Title => {
+            let ascii = r#"
+                            __  __            __       __    
+            ______ _____ / /_/ /  __ ______/ /_____ / /____
+            / __/ // (_-</ __/ _ \/ // / __/  '_/ -_) __(_-<
+            /_/  \_,_/___/\__/_.__/\_,_/\__/_/\_\\__/\__/___/
+
+            "#.to_string();
             let title = Label::new(
                 Coordinates { x: 1, y: 1},
-                "Rustbuckets v0.1.0".to_string()
+                ascii.to_string()
             );
             let instructions = Label::new(
                 Coordinates { x: 1, y: 2},
@@ -629,13 +637,7 @@ fn main() {
             }
         },
         Mode::Game => {
-            let title = Label::new(
-                Coordinates { x: 1, y: 1},
-                "Rustbuckets v0.1.0".to_string()
-            );
-
-            title.render(&mut stdout);
-            stdout.flush().unwrap();
+            
         },
         Mode::Endscreen => {
 
