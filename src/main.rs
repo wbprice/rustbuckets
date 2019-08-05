@@ -514,10 +514,15 @@ fn main() {
                     Coordinates { x: 1, y: 2},
                     "Press F to start".to_string()
                 );
+                let quit_instructions = Label::new(
+                    Coordinates { x: 1, y: 2},
+                    "Press F to start".to_string()
+                );
 
                 // Initial render
                 title.render(&mut stdout);
                 instructions.render(&mut stdout);
+                quit_instructions.render(&mut stdout);
                 stdout.flush().unwrap();
 
                 for c in stdin.keys() {
@@ -536,6 +541,7 @@ fn main() {
                     // Rerender after handling input
                     title.render(&mut stdout);
                     instructions.render(&mut stdout);
+                    quit_instructions.render(&mut stdout);
                     stdout.flush().unwrap();
                 }
             },
@@ -609,6 +615,7 @@ fn main() {
 
                 // Handle user inputs and render interface
                 for c in stdin.keys() {
+
                     match c.unwrap() {
                         Key::Char('q') => {
                             game = game.toggle_mode(Mode::Title);
@@ -637,6 +644,11 @@ fn main() {
                         _ => {}
                     }
 
+                    if game.blue_score.hits >= 17 || game.red_score.hits >= 17 {
+                        game = game.toggle_mode(Mode::Endscreen);
+                        break;
+                    }
+
                     // Initial render
                     red_board.render(&mut stdout);
                     blue_board.render(&mut stdout);
@@ -651,7 +663,6 @@ fn main() {
                     cursor.render(&mut stdout);
                     stdout.flush().unwrap();
                 }
-                            
             },
             Mode::Endscreen => {
                 // Endscreen mode setup
@@ -672,19 +683,28 @@ fn main() {
                     Coordinates { x: 1, y: 1},
                     "Game End".to_string()
                 );
-                let instructions = Label::new(
+                let quit_instructions = Label::new(
                     Coordinates { x: 1, y: 2},
                     "Press Q to quit".to_string()
+                );
+                let replay_instructions = Label::new(
+                    Coordinates { x: 1, y: 3},
+                    "Press F to play again".to_string()
                 );
 
                 // Initial render
                 title.render(&mut stdout);
-                instructions.render(&mut stdout);
+                quit_instructions.render(&mut stdout);
+                replay_instructions.render(&mut stdout);
                 stdout.flush().unwrap();
 
                 for c in stdin.keys() {
                     match c.unwrap() {
                         Key::Char('q') => {
+                            game = game.toggle_mode(Mode::Quit);
+                            break;
+                        },
+                        Key::Char('f') => {
                             game = game.toggle_mode(Mode::Game);
                             break;
                         }
@@ -693,7 +713,8 @@ fn main() {
 
                     // Rerender after handling input
                     title.render(&mut stdout);
-                    instructions.render(&mut stdout);
+                    quit_instructions.render(&mut stdout);
+                    replay_instructions.render(&mut stdout);
                     stdout.flush().unwrap();
                 }
             },
