@@ -153,7 +153,11 @@ enum Faction {
     Blue,
 }
 
-#[derive(Debug, Copy, Clone)]
+impl Default for Faction {
+    fn default() -> Self { Faction::Red }
+}
+
+#[derive(Debug, Copy, Clone, Default)]
 struct Coordinates {
     x: u16,
     y: u16,
@@ -240,6 +244,10 @@ enum Heading {
     East,
     West,
     South,
+}
+
+impl Default for Heading {
+    fn default() -> Self { Heading::North }
 }
 
 impl Distribution<Heading> for Standard {
@@ -338,7 +346,7 @@ impl<'a> Cursor<'a> {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 struct Board {
     faction: Faction,
     origin: Coordinates,
@@ -425,12 +433,31 @@ impl Label {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 struct Ship<'a> {
     origin: Coordinates,
     board: &'a Board,
     heading: Heading,
     segments: Vec<ShipSegment>,
+}
+
+impl<'a> Default for Ship<'a> {
+    fn default() -> Ship<'a> {
+        Ship {
+            origin: Coordinates {
+                x: 0,
+                y: 0
+            },
+            board: &Board::new(
+                Faction::default(),
+                Coordinates::default(),
+                8,
+                8
+            ),
+            heading: Heading::default(),
+            segments: Vec::new()
+        }
+    }
 }
 
 impl<'a> Ship<'a> {
@@ -486,7 +513,7 @@ impl<'a> Ship<'a> {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 struct ShipSegment {
     coordinates: Coordinates,
 }
@@ -541,6 +568,20 @@ fn is_legal_heading(origin: Coordinates, heading: Heading, length: u16) -> bool 
             }
         }
     }
+}
+
+fn is_ship_at_coordinates(ships: Vec<Ship>, coordinates: Coordinates) -> bool {
+    let mut result = false;
+    for ship in ships {
+        for segment in ship.segments.iter() {
+            if coordinates.x == segment.coordinates.x &&
+               coordinates.y == segment.coordinates.y {
+                   result = true;
+                   break;
+               }
+        }
+    }
+    return result
 }
 
 fn is_legal_ship_placement(ships: Vec<Ship>, new_ship: Ship) -> bool {
@@ -598,23 +639,41 @@ fn auto_select_heading(origin: Coordinates, board: &Board, length: u16) {
     }
 }
 
-fn auto_place_ship(ships: Vec<Ship>, board: &Board, length: u16) {
-    // Select origin
-    let origin = auto_select_origin(board);
-    // Using origin, select a heading
-    let heading : Heading = rand::random();
-    let mut legal_heading = false;
-    while legal_heading != true {
-        legal_heading = is_legal_heading(origin, heading, length);
+fn autocreate_ship<'a>(ships: Vec<Ship>, board: &'a Board, length: u16) -> Ship<'a> {
+
+    let mut ship = Ship {
+        ..Default::default()
+    };
+
+    let mut ship_is_legal = false;
+    while ship_is_legal == false {
+        // Create an origin
+        // Any origin on the board is legal as long
+        // as there's not already a ship there
+        let mut origin = auto_select_origin(board);
+        let mut origin_is_legal = is_ship_at_coordinates(ships.clone(), origin);
+        // If the first try isn't good, keep going until it is.
+        while origin_is_legal == false {
+            origin = auto_select_origin(board);
+            origin_is_legal = is_ship_at_coordinates(ships.clone(), origin);
+        }
+
+        // Pick a heading.
+        // Any heading is legal as long as it doesn't run off the board
+        let mut heading : Heading = rand::random();
+        let mut heading_is_legal = is_legal_heading(origin, heading, length);
+        while heading_is_legal == false {
+            // Using origin, select a legal heading
+            heading = rand::random();
+            heading_is_legal = is_legal_heading(origin, heading, length);
+        }
+
+        // Create ship with legal origin and legal heading
+        ship = Ship::new(origin, board, heading, length);
+        ship_is_legal = is_legal_ship_placement(ships, ship);
     }
-    // Create ship
-    let tentative_ship = Ship::new(origin, board, heading, length);
 
-    // Check for ship collisions
-
-    // If no collisions, place the ship
-
-    // If collissions, try again
+    ship
 }
 
 fn main() {
@@ -851,7 +910,7 @@ fn main() {
                 }
             },
             Mode::Quit => {
-            let mut stdout = stdout().into_raw_mode().unwrap();
+                let mut stdout = stdout().into_raw_mode().unwrap();
                 write!(stdout, "{}", style::Reset).unwrap();
                 break;
             }
@@ -1037,6 +1096,7 @@ mod tests {
             2
         );
         let result = is_legal_ship_placement(ships, tentative_ship);
+
         assert_eq!(result, false);
     }
 }
