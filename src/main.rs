@@ -705,6 +705,7 @@ fn main() {
                             break;
                         },
                         Key::Char('f') => {
+                            game = Game::new(Coordinates { x: 38, y: 2 });
                             game = game.toggle_mode(Mode::Game);
                             break;
                         }
