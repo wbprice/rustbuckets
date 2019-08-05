@@ -433,7 +433,7 @@ impl Label {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 struct Ship<'a> {
     origin: Coordinates,
     board: &'a Board,
