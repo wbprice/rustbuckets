@@ -480,9 +480,6 @@ impl ShipSegment {
     }
 }
 
-fn game_loop(mut game: Game, stdin: Stdin, mut stdout: &mut RawTerminal<Stdout>) {
-}
-
 
 fn main() {
     let mut game = Game::new(Coordinates { x: 38, y: 2 });
@@ -513,15 +510,10 @@ fn main() {
                     "Press F to start".to_string()
                 );
 
-                // Create naive render function (renders everything)
-                let mut render = || {
-                    title.render(&mut stdout);
-                    instructions.render(&mut stdout);
-                    stdout.flush().unwrap();
-                };
-
                 // Initial render
-                render();
+                title.render(&mut stdout);
+                instructions.render(&mut stdout);
+                stdout.flush().unwrap();
 
                 for c in stdin.keys() {
                     match c.unwrap() {
@@ -536,7 +528,9 @@ fn main() {
                     }
 
                     // Rerender after handling input
-                    render();
+                    title.render(&mut stdout);
+                    instructions.render(&mut stdout);
+                    stdout.flush().unwrap();
                 }
 
             },
@@ -606,7 +600,6 @@ fn main() {
                     attack.render(&mut stdout);
                 }
                 cursor.render(&mut stdout);
-
                 stdout.flush().unwrap();
 
                 // Handle user inputs and render interface
@@ -639,8 +632,11 @@ fn main() {
                         _ => {}
                     }
 
+                    // Initial render
                     red_board.render(&mut stdout);
                     blue_board.render(&mut stdout);
+                    title.render(&mut stdout);
+                    game.render(&mut stdout);
                     for ship in ships.clone() {
                         ship.render(&mut stdout);
                     }
@@ -648,7 +644,6 @@ fn main() {
                         attack.render(&mut stdout);
                     }
                     cursor.render(&mut stdout);
-                    game.render(&mut stdout);
                     stdout.flush().unwrap();
                 }
                             
