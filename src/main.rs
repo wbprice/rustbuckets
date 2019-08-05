@@ -4,6 +4,7 @@ use termion::event::Key;
 use termion::input::TermRead;
 use termion::raw::{IntoRawMode, RawTerminal};
 use termion::{color, style};
+use rand::{Rng};
 
 
 #[derive(Clone, Copy)]
@@ -485,6 +486,63 @@ impl ShipSegment {
     }
 }
 
+fn auto_select_origin(board: &Board) -> Coordinates {
+    let mut rng = rand::thread_rng();
+    // Randomly choose origin
+    Coordinates {
+        x: rng.gen_range(0, board.width),
+        y: rng.gen_range(0, board.height)
+    }
+}
+
+fn auto_select_heading(origin: Coordinates, board: &Board, length: u16) {
+    let mut rng = rand::thread_rng();
+    // Randomly choose heading
+    let mut good_heading = false;
+    let headings = vec![Heading::North, Heading::East, Heading::South, Heading::West];
+    let heading = &headings[rng.gen_range(0, 3)];
+    // If heading would lead off the board, pick another heading
+    while good_heading == false {
+        match heading {
+            Heading::North => {
+                // There should be enough room to place the ship heading north
+                if origin.y >= length {
+                    good_heading = true;
+                }
+            },
+            Heading::South => {
+                // There should be enough room to place the ship heading south
+                if 8 - origin.y >= length {
+                    good_heading = true;
+                }
+            },
+            Heading::West => {
+                // There should be enough room to place the ship heading west
+                if origin.x >= length {
+                    good_heading = true;
+                }
+            },
+            Heading::East => {
+                // There should be enough room to place the ship heading east
+                if 8 - origin.x >= length {
+                    good_heading = true;
+                }
+            }
+        }
+    }
+}
+
+fn auto_place_ship(ships: Vec<Ship>, board: &Board, length: u16) {
+    let origin = auto_select_origin(board);
+
+    // Create ship
+
+    // Check for ship collisions
+
+    // If no collisions, place the ship
+
+    // If collissions, try again
+}
 
 fn main() {
     let mut game = Game::new(Coordinates { x: 38, y: 2 });
@@ -792,5 +850,16 @@ mod tests {
         assert_eq!(ship.segments[1].coordinates.y, 1);
         assert_eq!(ship.segments[2].coordinates.x, 0);
         assert_eq!(ship.segments[2].coordinates.y, 2);
+    }
+
+    #[test]
+    fn test_auto_select_origin() {
+        let board = Board::new(Faction::Blue, Coordinates { x: 1, y: 2}, 8, 8);
+        let origin = auto_select_origin(&board);
+
+        assert!(origin.x <= 7);
+        assert!(origin.x >= 0);
+        assert!(origin.y >= 0);
+        assert!(origin.y <= 7);
     }
 }
