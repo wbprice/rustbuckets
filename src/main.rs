@@ -433,31 +433,12 @@ impl Label {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 struct Ship<'a> {
     origin: Coordinates,
     board: &'a Board,
     heading: Heading,
     segments: Vec<ShipSegment>,
-}
-
-impl<'a> Default for Ship<'a> {
-    fn default() -> Ship<'a> {
-        Ship {
-            origin: Coordinates {
-                x: 0,
-                y: 0
-            },
-            board: &Board::new(
-                Faction::default(),
-                Coordinates::default(),
-                8,
-                8
-            ),
-            heading: Heading::default(),
-            segments: Vec::new()
-        }
-    }
 }
 
 impl<'a> Ship<'a> {
@@ -640,13 +621,7 @@ fn auto_select_heading(origin: Coordinates, board: &Board, length: u16) {
 }
 
 fn autocreate_ship<'a>(ships: Vec<Ship>, board: &'a Board, length: u16) -> Ship<'a> {
-
-    let mut ship = Ship {
-        ..Default::default()
-    };
-
-    let mut ship_is_legal = false;
-    while ship_is_legal == false {
+    loop {
         // Create an origin
         // Any origin on the board is legal as long
         // as there's not already a ship there
@@ -669,11 +644,11 @@ fn autocreate_ship<'a>(ships: Vec<Ship>, board: &'a Board, length: u16) -> Ship<
         }
 
         // Create ship with legal origin and legal heading
-        ship = Ship::new(origin, board, heading, length);
-        ship_is_legal = is_legal_ship_placement(ships, ship);
+        let ship = Ship::new(origin, board, heading, length);
+        if is_legal_ship_placement(ships, ship.clone()) {
+            return ship
+        }
     }
-
-    ship
 }
 
 fn main() {
