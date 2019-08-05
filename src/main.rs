@@ -22,7 +22,8 @@ impl Scores {
 enum Mode {
     Title,
     Game,
-    Endscreen
+    Endscreen,
+    Quit
 }
 
 #[derive(Clone, Copy)]
@@ -94,15 +95,19 @@ impl Game {
         let mut game = self.clone();
         match mode {
             Mode::Title => {
-                game.mode = Mode::Game;
+                game.mode = Mode::Title;
                 game
             },
             Mode::Game => {
-                game.mode = Mode::Endscreen;
+                game.mode = Mode::Game;
                 game
             },
             Mode::Endscreen => {
-                game.mode = Mode::Title;
+                game.mode = Mode::Endscreen;
+                game
+            },
+            Mode::Quit => {
+                game.mode = Mode::Quit;
                 game
             }
         }
@@ -518,11 +523,12 @@ fn main() {
                 for c in stdin.keys() {
                     match c.unwrap() {
                         Key::Char('q') => {
-                            write!(stdout, "{}", style::Reset).unwrap();
+                            game = game.toggle_mode(Mode::Quit);
                             break;
                         },
                         Key::Char('f') => {
                             game = game.toggle_mode(Mode::Game);
+                            break;
                         },
                         _ => {}
                     }
@@ -532,7 +538,6 @@ fn main() {
                     instructions.render(&mut stdout);
                     stdout.flush().unwrap();
                 }
-
             },
             Mode::Game => {
                 // Clear all
@@ -606,7 +611,7 @@ fn main() {
                 for c in stdin.keys() {
                     match c.unwrap() {
                         Key::Char('q') => {
-                            write!(stdout, "{}", style::Reset).unwrap();
+                            game = game.toggle_mode(Mode::Title);
                             break;
                         }
                         Key::Char('w') => {
@@ -649,7 +654,53 @@ fn main() {
                             
             },
             Mode::Endscreen => {
+                // Endscreen mode setup
+                let mut stdout = stdout().into_raw_mode().unwrap();
+                let stdin = stdin();
 
+                write!(
+                    stdout,
+                    "{}{}{}",
+                    termion::clear::All,
+                    Goto(1, 1),
+                    termion::cursor::Hide
+                )
+                .unwrap();
+
+                // Create entities
+                let title = Label::new(
+                    Coordinates { x: 1, y: 1},
+                    "Game End".to_string()
+                );
+                let instructions = Label::new(
+                    Coordinates { x: 1, y: 2},
+                    "Press Q to quit".to_string()
+                );
+
+                // Initial render
+                title.render(&mut stdout);
+                instructions.render(&mut stdout);
+                stdout.flush().unwrap();
+
+                for c in stdin.keys() {
+                    match c.unwrap() {
+                        Key::Char('q') => {
+                            game = game.toggle_mode(Mode::Game);
+                            break;
+                        }
+                        _ => {}
+                    }
+
+                    // Rerender after handling input
+                    title.render(&mut stdout);
+                    instructions.render(&mut stdout);
+                    stdout.flush().unwrap();
+                }
+            },
+            Mode::Quit => {
+            let mut stdout = stdout().into_raw_mode().unwrap();
+                write!(stdout, "{}", style::Reset).unwrap();
+                break;
             }
         }
     }
