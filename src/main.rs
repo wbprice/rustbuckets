@@ -481,166 +481,181 @@ impl ShipSegment {
 }
 
 fn game_loop(mut game: Game, stdin: Stdin, mut stdout: &mut RawTerminal<Stdout>) {
-    // Instantiate game entities
-    let red_board = Board::new(Faction::Blue, Coordinates { x: 1, y: 2 }, 8, 8);
-    let blue_board = Board::new(Faction::Red, Coordinates { x: 1, y: 20 }, 8, 8);
-    let mut cursor = Cursor::new(Coordinates { x: 0, y: 0 }, &red_board);
-    let mut attacks: Vec<Attack> = Vec::new();
-    let mut ships: Vec<Ship> = Vec::new();
-    let title = Label::new(Coordinates { x: 1, y: 1}, "Rustbuckets v0.1.0".to_string());
-
-    // Some test ships
-    ships.push(Ship::new(
-        Coordinates { x: 2, y: 0 },
-        &red_board,
-        Heading::South,
-        3,
-    ));
-    ships.push(Ship::new(
-        Coordinates { x: 3, y: 3 },
-        &red_board,
-        Heading::East,
-        3,
-    ));
-    ships.push(Ship::new(
-        Coordinates { x: 0, y: 7 },
-        &red_board,
-        Heading::North,
-        5,
-    ));
-    ships.push(Ship::new(
-        Coordinates { x: 7, y: 7 },
-        &red_board,
-        Heading::North,
-        4,
-    ));
-    ships.push(Ship::new(
-        Coordinates { x: 4, y: 6 },
-        &red_board,
-        Heading::West,
-        2,
-    ));
-
-    // Initial render
-    red_board.render(&mut stdout);
-    blue_board.render(&mut stdout);
-    title.render(&mut stdout);
-    game.render(&mut stdout);
-    for ship in ships.clone() {
-        ship.render(&mut stdout);
-    }
-    for attack in attacks.clone() {
-        attack.render(&mut stdout);
-    }
-    cursor.render(&mut stdout);
-
-    stdout.flush().unwrap();
-
-    // Handle user inputs and render interface
-    for c in stdin.keys() {
-        match c.unwrap() {
-            Key::Char('q') => {
-                write!(stdout, "{}", style::Reset).unwrap();
-                break;
-            }
-            Key::Char('w') => {
-                cursor = cursor.on_move(Heading::North);
-            }
-            Key::Char('a') => {
-                cursor = cursor.on_move(Heading::West);
-            }
-            Key::Char('s') => {
-                cursor = cursor.on_move(Heading::South);
-            }
-            Key::Char('d') => {
-                cursor = cursor.on_move(Heading::East);
-            }
-            Key::Char('f') => {
-                let attack = Attack::new(cursor.coordinates, &red_board, ships.clone());
-                game = match attack.result {
-                    AttackResults::Hit => game.increment_hits(),
-                    AttackResults::Miss => game.increment_misses(),
-                };
-                attacks.push(attack);
-            }
-            _ => {}
-        }
-
-        red_board.render(&mut stdout);
-        blue_board.render(&mut stdout);
-        for ship in ships.clone() {
-            ship.render(&mut stdout);
-        }
-        for attack in attacks.clone() {
-            attack.render(&mut stdout);
-        }
-        cursor.render(&mut stdout);
-        game.render(&mut stdout);
-        stdout.flush().unwrap();
-    }
 }
 
 
 fn main() {
-    let mut stdout = stdout().into_raw_mode().unwrap();
-    let stdin = stdin();
-
     let mut game = Game::new(Coordinates { x: 38, y: 2 });
 
-    match game.mode {
-        Mode::Title => {
-            let ascii = r#"
-                            __  __            __       __    
-            ______ _____ / /_/ /  __ ______/ /_____ / /____
-            / __/ // (_-</ __/ _ \/ // / __/  '_/ -_) __(_-<
-            /_/  \_,_/___/\__/_.__/\_,_/\__/_/\_\\__/\__/___/
+    loop {
+        match game.mode {
+            Mode::Title => {
+                // Title mode setup
+                let mut stdout = stdout().into_raw_mode().unwrap();
+                let stdin = stdin();
 
-            "#.to_string();
-            let title = Label::new(
-                Coordinates { x: 1, y: 1},
-                ascii.to_string()
-            );
-            let instructions = Label::new(
-                Coordinates { x: 1, y: 2},
-                "Press F to start".to_string()
-            );
+                write!(
+                    stdout,
+                    "{}{}{}",
+                    termion::clear::All,
+                    Goto(1, 1),
+                    termion::cursor::Hide
+                )
+                .unwrap();
 
-            write!(
-                stdout,
-                "{}{}{}",
-                termion::clear::All,
-                Goto(1, 1),
-                termion::cursor::Hide
-            )
-            .unwrap();
+                // Create entities
+                let title = Label::new(
+                    Coordinates { x: 1, y: 1},
+                    "Rustbuckets".to_string()
+                );
+                let instructions = Label::new(
+                    Coordinates { x: 1, y: 2},
+                    "Press F to start".to_string()
+                );
 
-            title.render(&mut stdout);
-            instructions.render(&mut stdout);
+                // Create naive render function (renders everything)
+                let mut render = || {
+                    title.render(&mut stdout);
+                    instructions.render(&mut stdout);
+                    stdout.flush().unwrap();
+                };
 
-            stdout.flush().unwrap();
+                // Initial render
+                render();
 
-            for c in stdin.keys() {
-                match c.unwrap() {
-                    Key::Char('q') => {
-                        write!(stdout, "{}", style::Reset).unwrap();
-                        break;
-                    },
-                    Key::Char('f') => {
-                        game = game.toggle_mode(Mode::Game);
-                    },
-                    _ => {}
+                for c in stdin.keys() {
+                    match c.unwrap() {
+                        Key::Char('q') => {
+                            write!(stdout, "{}", style::Reset).unwrap();
+                            break;
+                        },
+                        Key::Char('f') => {
+                            game = game.toggle_mode(Mode::Game);
+                        },
+                        _ => {}
+                    }
+
+                    // Rerender after handling input
+                    render();
                 }
 
-                title.render(&mut stdout);
-                instructions.render(&mut stdout);
-                stdout.flush().unwrap();
-            }
-        },
-        Mode::Game => {
-            
-        },
-        Mode::Endscreen => {
+            },
+            Mode::Game => {
+                // Clear all
+                let mut stdout = stdout().into_raw_mode().unwrap();
+                let stdin = stdin();
 
+                write!(
+                    stdout,
+                    "{}{}{}",
+                    termion::clear::All,
+                    Goto(1, 1),
+                    termion::cursor::Hide
+                )
+                .unwrap();
+
+                // Instantiate game entities
+                let red_board = Board::new(Faction::Blue, Coordinates { x: 1, y: 2 }, 8, 8);
+                let blue_board = Board::new(Faction::Red, Coordinates { x: 1, y: 20 }, 8, 8);
+                let mut cursor = Cursor::new(Coordinates { x: 0, y: 0 }, &red_board);
+                let mut attacks: Vec<Attack> = Vec::new();
+                let mut ships: Vec<Ship> = Vec::new();
+                let title = Label::new(Coordinates { x: 1, y: 1}, "Rustbuckets v0.1.0".to_string());
+
+                // Some test ships
+                ships.push(Ship::new(
+                    Coordinates { x: 2, y: 0 },
+                    &red_board,
+                    Heading::South,
+                    3,
+                ));
+                ships.push(Ship::new(
+                    Coordinates { x: 3, y: 3 },
+                    &red_board,
+                    Heading::East,
+                    3,
+                ));
+                ships.push(Ship::new(
+                    Coordinates { x: 0, y: 7 },
+                    &red_board,
+                    Heading::North,
+                    5,
+                ));
+                ships.push(Ship::new(
+                    Coordinates { x: 7, y: 7 },
+                    &red_board,
+                    Heading::North,
+                    4,
+                ));
+                ships.push(Ship::new(
+                    Coordinates { x: 4, y: 6 },
+                    &red_board,
+                    Heading::West,
+                    2,
+                ));
+
+                // Initial render
+                red_board.render(&mut stdout);
+                blue_board.render(&mut stdout);
+                title.render(&mut stdout);
+                game.render(&mut stdout);
+                for ship in ships.clone() {
+                    ship.render(&mut stdout);
+                }
+                for attack in attacks.clone() {
+                    attack.render(&mut stdout);
+                }
+                cursor.render(&mut stdout);
+
+                stdout.flush().unwrap();
+
+                // Handle user inputs and render interface
+                for c in stdin.keys() {
+                    match c.unwrap() {
+                        Key::Char('q') => {
+                            write!(stdout, "{}", style::Reset).unwrap();
+                            break;
+                        }
+                        Key::Char('w') => {
+                            cursor = cursor.on_move(Heading::North);
+                        }
+                        Key::Char('a') => {
+                            cursor = cursor.on_move(Heading::West);
+                        }
+                        Key::Char('s') => {
+                            cursor = cursor.on_move(Heading::South);
+                        }
+                        Key::Char('d') => {
+                            cursor = cursor.on_move(Heading::East);
+                        }
+                        Key::Char('f') => {
+                            let attack = Attack::new(cursor.coordinates, &red_board, ships.clone());
+                            game = match attack.result {
+                                AttackResults::Hit => game.increment_hits(),
+                                AttackResults::Miss => game.increment_misses(),
+                            };
+                            attacks.push(attack);
+                        }
+                        _ => {}
+                    }
+
+                    red_board.render(&mut stdout);
+                    blue_board.render(&mut stdout);
+                    for ship in ships.clone() {
+                        ship.render(&mut stdout);
+                    }
+                    for attack in attacks.clone() {
+                        attack.render(&mut stdout);
+                    }
+                    cursor.render(&mut stdout);
+                    game.render(&mut stdout);
+                    stdout.flush().unwrap();
+                }
+                            
+            },
+            Mode::Endscreen => {
+
+            }
         }
     }
 }
