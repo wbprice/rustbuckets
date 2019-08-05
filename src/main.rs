@@ -4,7 +4,7 @@ use termion::event::Key;
 use termion::input::TermRead;
 use termion::raw::{IntoRawMode, RawTerminal};
 use termion::{color, style};
-use rand::{Rng};
+use rand::{Rng, distributions::{Distribution, Standard}};
 
 
 #[derive(Clone, Copy)]
@@ -234,12 +234,23 @@ enum AttackResults {
     Miss,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 enum Heading {
     North,
     East,
     West,
     South,
+}
+
+impl Distribution<Heading> for Standard {
+    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Heading {
+        match rng.gen_range(0, 3) {
+            0 => Heading::North,
+            1 => Heading::East,
+            2 => Heading::West,
+            _ => Heading::South
+        }
+    }
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -495,6 +506,61 @@ fn auto_select_origin(board: &Board) -> Coordinates {
     }
 }
 
+fn is_legal_heading(origin: Coordinates, heading: Heading, length: u16) -> bool {
+    match heading {
+        Heading::North => {
+            // There should be enough room to place the ship heading north
+            if origin.y >= length {
+                true
+            } else {
+                false
+            }
+        },
+        Heading::South => {
+            // There should be enough room to place the ship heading south
+            if 8 - origin.y >= length {
+                true
+            } else {
+                false
+            }
+        },
+        Heading::West => {
+            // There should be enough room to place the ship heading west
+            if origin.x >= length {
+                true
+            } else {
+                false
+            }
+        },
+        Heading::East => {
+            // There should be enough room to place the ship heading east
+            if 8 - origin.x >= length {
+                true
+            } else {
+                false
+            }
+        }
+    }
+}
+
+fn is_legal_ship_placement(ships: Vec<Ship>, new_ship: Ship) -> bool {
+    let mut result = true;
+    for ship in ships {
+        // If a ship segement belonging to new_ship is also in ship
+        // the ship placement is not legal
+        for new_segment in new_ship.segments.iter() {
+            for segment in ship.segments.iter() {
+                if new_segment.coordinates.x == segment.coordinates.x &&
+                   new_segment.coordinates.y == segment.coordinates.y {
+                    result = false;
+                    break;
+                }
+            }
+        }
+    }
+    result
+}
+
 fn auto_select_heading(origin: Coordinates, board: &Board, length: u16) {
     let mut rng = rand::thread_rng();
     // Randomly choose heading
@@ -533,9 +599,16 @@ fn auto_select_heading(origin: Coordinates, board: &Board, length: u16) {
 }
 
 fn auto_place_ship(ships: Vec<Ship>, board: &Board, length: u16) {
+    // Select origin
     let origin = auto_select_origin(board);
-
+    // Using origin, select a heading
+    let heading : Heading = rand::random();
+    let mut legal_heading = false;
+    while legal_heading != true {
+        legal_heading = is_legal_heading(origin, heading, length);
+    }
     // Create ship
+    let tentative_ship = Ship::new(origin, board, heading, length);
 
     // Check for ship collisions
 
@@ -861,5 +934,109 @@ mod tests {
         assert!(origin.x >= 0);
         assert!(origin.y >= 0);
         assert!(origin.y <= 7);
+    }
+
+    #[test]
+    fn test_is_legal_heading_north_0_0() {
+        let origin = Coordinates {
+            x: 0,
+            y: 0
+        };
+        let result = is_legal_heading(origin, Heading::North, 2);
+        assert_eq!(result, false);
+    }
+
+    #[test]
+    fn test_is_legal_heading_north_0_2() {
+        let origin = Coordinates {
+            x: 0,
+            y: 2
+        };
+        let result = is_legal_heading(origin, Heading::North, 2);
+        assert_eq!(result, true);
+    }
+
+    #[test]
+    fn test_is_legal_heading_south_0_7() {
+        let origin = Coordinates {
+            x: 0,
+            y: 7
+        };
+        let result = is_legal_heading(origin, Heading::South, 2);
+        assert_eq!(result, false);
+    }
+
+    #[test]
+    fn test_is_legal_heading_south_0_5() {
+        let origin = Coordinates {
+            x: 0,
+            y: 5
+        };
+        let result = is_legal_heading(origin, Heading::South, 2);
+        assert_eq!(result, true);
+    }
+
+    #[test]
+    fn test_is_legal_heading_west_0_0() {
+        let origin = Coordinates {
+            x: 0,
+            y: 0
+        };
+        let result = is_legal_heading(origin, Heading::West, 2);
+        assert_eq!(result, false);
+    }
+
+    #[test]
+    fn test_is_legal_heading_west_0_2() {
+        let origin = Coordinates {
+            x: 0,
+            y: 2
+        };
+        let result = is_legal_heading(origin, Heading::West, 2);
+        assert_eq!(result, false);
+    }
+
+    #[test]
+    fn test_is_legal_ship_placement_empty_board() {
+        let board = Board::new(
+            Faction::Blue,
+            Coordinates {x: 0, y: 0},
+            8,
+            8
+        );
+        let ships : Vec<Ship> = vec![];
+        let tentative_ship = Ship::new(
+            Coordinates{x: 0, y: 1},
+            &board,
+            Heading::South, 2
+        );
+        let result = is_legal_ship_placement(ships, tentative_ship);
+        assert_eq!(result, true);
+    }
+
+    #[test]
+    fn test_is_legal_ship_placement_non_empty_board() {
+        let board = Board::new(
+            Faction::Blue,
+            Coordinates {x: 0, y: 0},
+            8,
+            8
+        );
+        let ships : Vec<Ship> = vec![
+            Ship::new(
+                Coordinates{x: 0, y: 1},
+                &board,
+                Heading::South,
+                2
+            )
+        ];
+        let tentative_ship = Ship::new(
+            Coordinates{x: 0, y: 1},
+            &board,
+            Heading::South,
+            2
+        );
+        let result = is_legal_ship_placement(ships, tentative_ship);
+        assert_eq!(result, false);
     }
 }
