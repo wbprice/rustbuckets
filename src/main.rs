@@ -178,10 +178,10 @@ struct Attack<'a> {
 }
 
 impl<'a> Attack<'a> {
-    fn new(coordinates: Coordinates, board: &'a Board, ships: Vec<Ship>) -> Attack<'a> {
+    fn new(coordinates: Coordinates, board: &'a Board, ships: &'a Vec<Ship>) -> Attack<'a> {
         let mut hit = false;
-        for ship in ships {
-            for segment in ship.segments {
+        for ship in ships.into_iter() {
+            for segment in ship.segments.iter() {
                 if segment.coordinates.x == coordinates.x && segment.coordinates.y == coordinates.y
                 {
                     hit = true;
@@ -252,11 +252,14 @@ impl Default for Heading {
 
 impl Distribution<Heading> for Standard {
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Heading {
+        let random = rng.gen_range(0, 3);
+        dbg!(random);
         match rng.gen_range(0, 3) {
             0 => Heading::North,
             1 => Heading::East,
             2 => Heading::West,
-            _ => Heading::South
+            3 => Heading::South,
+            _ => Heading::North
         }
     }
 }
@@ -433,13 +436,14 @@ impl Label {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug)]
 struct Ship<'a> {
     origin: Coordinates,
     board: &'a Board,
     heading: Heading,
     segments: Vec<ShipSegment>,
 }
+
 
 impl<'a> Ship<'a> {
     fn new(origin: Coordinates, board: &'a Board, heading: Heading, length: u16) -> Ship {
@@ -470,12 +474,12 @@ impl<'a> Ship<'a> {
             origin,
             board,
             heading,
-            segments,
+            segments
         }
     }
 
-    fn render(self, stdout: &mut RawTerminal<Stdout>) {
-        for segment in self.segments {
+    fn render(&self, stdout: &mut RawTerminal<Stdout>) {
+        for segment in self.segments.iter() {
             let board_coords = translate_game_coords_to_board_coords(segment.coordinates);
             let screen_coords = Coordinates {
                 x: board_coords.x + self.board.origin.x,
@@ -551,7 +555,7 @@ fn is_legal_heading(origin: Coordinates, heading: Heading, length: u16) -> bool 
     }
 }
 
-fn is_ship_at_coordinates(ships: Vec<Ship>, coordinates: Coordinates) -> bool {
+fn is_ship_at_coordinates(ships: &Vec<Ship>, coordinates: Coordinates) -> bool {
     let mut result = false;
     for ship in ships {
         for segment in ship.segments.iter() {
@@ -565,7 +569,7 @@ fn is_ship_at_coordinates(ships: Vec<Ship>, coordinates: Coordinates) -> bool {
     return result
 }
 
-fn is_legal_ship_placement(ships: Vec<Ship>, new_ship: Ship) -> bool {
+fn is_legal_ship_placement(ships: &Vec<Ship>, new_ship: Ship) -> bool {
     let mut result = true;
     for ship in ships {
         // If a ship segement belonging to new_ship is also in ship
@@ -583,54 +587,17 @@ fn is_legal_ship_placement(ships: Vec<Ship>, new_ship: Ship) -> bool {
     result
 }
 
-fn auto_select_heading(origin: Coordinates, board: &Board, length: u16) {
-    let mut rng = rand::thread_rng();
-    // Randomly choose heading
-    let mut good_heading = false;
-    let headings = vec![Heading::North, Heading::East, Heading::South, Heading::West];
-    let heading = &headings[rng.gen_range(0, 3)];
-    // If heading would lead off the board, pick another heading
-    while good_heading == false {
-        match heading {
-            Heading::North => {
-                // There should be enough room to place the ship heading north
-                if origin.y >= length {
-                    good_heading = true;
-                }
-            },
-            Heading::South => {
-                // There should be enough room to place the ship heading south
-                if 8 - origin.y >= length {
-                    good_heading = true;
-                }
-            },
-            Heading::West => {
-                // There should be enough room to place the ship heading west
-                if origin.x >= length {
-                    good_heading = true;
-                }
-            },
-            Heading::East => {
-                // There should be enough room to place the ship heading east
-                if 8 - origin.x >= length {
-                    good_heading = true;
-                }
-            }
-        }
-    }
-}
-
-fn autocreate_ship<'a>(ships: Vec<Ship>, board: &'a Board, length: u16) -> Ship<'a> {
+fn autocreate_ship<'a>(ships: &Vec<Ship>, board: &'a Board, length: u16) -> Ship<'a> {
     loop {
         // Create an origin
         // Any origin on the board is legal as long
         // as there's not already a ship there
         let mut origin = auto_select_origin(board);
-        let mut origin_is_legal = is_ship_at_coordinates(ships.clone(), origin);
+        let mut origin_is_legal = !is_ship_at_coordinates(ships, origin);
         // If the first try isn't good, keep going until it is.
         while origin_is_legal == false {
             origin = auto_select_origin(board);
-            origin_is_legal = is_ship_at_coordinates(ships.clone(), origin);
+            origin_is_legal = is_ship_at_coordinates(ships, origin);
         }
 
         // Pick a heading.
@@ -639,14 +606,15 @@ fn autocreate_ship<'a>(ships: Vec<Ship>, board: &'a Board, length: u16) -> Ship<
         let mut heading_is_legal = is_legal_heading(origin, heading, length);
         while heading_is_legal == false {
             // Using origin, select a legal heading
+            dbg!("illegal heading");
             heading = rand::random();
             heading_is_legal = is_legal_heading(origin, heading, length);
         }
 
         // Create ship with legal origin and legal heading
         let ship = Ship::new(origin, board, heading, length);
-        if is_legal_ship_placement(ships, ship.clone()) {
-            return ship
+        if is_legal_ship_placement(ships, ship) {
+            return Ship::new(origin, board, heading, length);
         }
     }
 }
@@ -732,44 +700,17 @@ fn main() {
                 let mut ships: Vec<Ship> = Vec::new();
                 let title = Label::new(Coordinates { x: 1, y: 1}, "Rustbuckets v0.1.0".to_string());
 
-                // Some test ships
-                ships.push(Ship::new(
-                    Coordinates { x: 2, y: 0 },
-                    &red_board,
-                    Heading::South,
-                    3,
-                ));
-                ships.push(Ship::new(
-                    Coordinates { x: 3, y: 3 },
-                    &red_board,
-                    Heading::East,
-                    3,
-                ));
-                ships.push(Ship::new(
-                    Coordinates { x: 0, y: 7 },
-                    &red_board,
-                    Heading::North,
-                    5,
-                ));
-                ships.push(Ship::new(
-                    Coordinates { x: 7, y: 7 },
-                    &red_board,
-                    Heading::North,
-                    4,
-                ));
-                ships.push(Ship::new(
-                    Coordinates { x: 4, y: 6 },
-                    &red_board,
-                    Heading::West,
-                    2,
-                ));
+                // Put some ships in the red_board
+                for length in vec![2, 2, 3, 4, 5] {
+                    ships.push(autocreate_ship(&ships, &red_board, length));
+                }
 
                 // Initial render
                 red_board.render(&mut stdout);
                 blue_board.render(&mut stdout);
                 title.render(&mut stdout);
                 game.render(&mut stdout);
-                for ship in ships.clone() {
+                for ship in ships.iter() {
                     ship.render(&mut stdout);
                 }
                 for attack in attacks.clone() {
@@ -799,7 +740,7 @@ fn main() {
                             cursor = cursor.on_move(Heading::East);
                         }
                         Key::Char('f') => {
-                            let attack = Attack::new(cursor.coordinates, &red_board, ships.clone());
+                            let attack = Attack::new(cursor.coordinates, &red_board, &ships);
                             game = match attack.result {
                                 AttackResults::Hit => game.increment_hits(),
                                 AttackResults::Miss => game.increment_misses(),
@@ -819,7 +760,7 @@ fn main() {
                     blue_board.render(&mut stdout);
                     title.render(&mut stdout);
                     game.render(&mut stdout);
-                    for ship in ships.clone() {
+                    for ship in ships.iter() {
                         ship.render(&mut stdout);
                     }
                     for attack in attacks.clone() {
@@ -1044,7 +985,7 @@ mod tests {
             &board,
             Heading::South, 2
         );
-        let result = is_legal_ship_placement(ships, tentative_ship);
+        let result = is_legal_ship_placement(&ships, tentative_ship);
         assert_eq!(result, true);
     }
 
@@ -1070,8 +1011,39 @@ mod tests {
             Heading::South,
             2
         );
-        let result = is_legal_ship_placement(ships, tentative_ship);
+        let result = is_legal_ship_placement(&ships, tentative_ship);
 
         assert_eq!(result, false);
+    }
+
+    #[test]
+    fn test_autocreate_ship_empty_board() {
+        let board = Board::new(
+            Faction::Blue,
+            Coordinates {x: 0, y: 0},
+            8,
+            8
+        );
+        let mut ships : Vec<Ship> = vec![];
+        let ship1 = autocreate_ship(&ships, &board, 2);
+        ships.push(ship1);
+        assert_eq!(ships.len(), 1);
+    }
+
+    #[test]
+    fn test_autocreate_ship_5_ships() {
+        let board = Board::new(
+            Faction::Blue,
+            Coordinates {x: 0, y: 0},
+            8,
+            8
+        );
+        let mut ships : Vec<Ship> = vec![];
+
+        for length in vec![2, 2, 3, 4, 5] {
+            let ship = autocreate_ship(&ships, &board, length);
+            ships.push(ship);
+        }
+        assert_eq!(ships.len(), 5);
     }
 }
