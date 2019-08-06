@@ -592,18 +592,18 @@ fn autocreate_ship<'a>(ships: &Vec<Ship>, board: &'a Board, length: u16) -> Ship
         let mut origin = auto_select_origin(board);
         let mut origin_is_legal = !is_ship_at_coordinates(ships, origin);
 
-        // Select a heading randomly.
-        // Any heading that doesn't lead the ship off the board is valid.
+        // Select a heading
+        // Any heading that doesn't lead the ship off the board is valid
         let mut heading : Heading = rand::random();
         let mut heading_is_legal = is_legal_heading(origin, heading, length);
 
-        // If origin isn't legal, pick another one randomly until it is.
+        // If origin isn't legal, pick another one randomly until it is
         while !origin_is_legal {
             origin = auto_select_origin(board);
             origin_is_legal = is_ship_at_coordinates(ships, origin);
         }
 
-        // Iterate through possible headings to find a legal heading.
+        // Iterate through possible headings to find a legal heading
         let mut random = thread_rng();
         let mut headings = vec![
             Heading::North,
@@ -628,10 +628,10 @@ fn autocreate_ship<'a>(ships: &Vec<Ship>, board: &'a Board, length: u16) -> Ship
             let ship = Ship::new(origin, board, heading, length);
             // If the newly created ship doesn't collide with existing ships,
             // it's legal.
+            // Otherwise, find a new origin and heading and try again.
             if is_legal_ship_placement(ships, ship) {
                 return Ship::new(origin, board, heading, length);
             }
-            // Otherwise, find a new origin and heading and try again.
         }
     }
 }
