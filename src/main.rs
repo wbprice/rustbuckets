@@ -4,7 +4,7 @@ use termion::event::Key;
 use termion::input::TermRead;
 use termion::raw::{IntoRawMode, RawTerminal};
 use termion::{color, style};
-use rand::{Rng, distributions::{Distribution, Standard}};
+use rand::{Rng, distributions::{Distribution, Standard}, thread_rng, seq::SliceRandom};
 
 
 #[derive(Clone, Copy)]
@@ -252,8 +252,6 @@ impl Default for Heading {
 
 impl Distribution<Heading> for Standard {
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Heading {
-        let random = rng.gen_range(0, 3);
-        dbg!(random);
         match rng.gen_range(0, 3) {
             0 => Heading::North,
             1 => Heading::East,
@@ -594,25 +592,40 @@ fn autocreate_ship<'a>(ships: &Vec<Ship>, board: &'a Board, length: u16) -> Ship
         // as there's not already a ship there
         let mut origin = auto_select_origin(board);
         let mut origin_is_legal = !is_ship_at_coordinates(ships, origin);
-        // If the first try isn't good, keep going until it is.
-        while origin_is_legal == false {
-            origin = auto_select_origin(board);
-            origin_is_legal = is_ship_at_coordinates(ships, origin);
-        }
-
-        // Pick a heading.
-        // Any heading is legal as long as it doesn't run off the board
         let mut heading : Heading = rand::random();
         let mut heading_is_legal = is_legal_heading(origin, heading, length);
-        while heading_is_legal == false {
-            // Using origin, select a legal heading
-            dbg!("illegal heading");
-            heading = rand::random();
-            heading_is_legal = is_legal_heading(origin, heading, length);
+        // If the first try isn't good, keep going until it is.
+
+        while !origin_is_legal && !heading_is_legal {
+
+            while origin_is_legal == false {
+                origin = auto_select_origin(board);
+                origin_is_legal = is_ship_at_coordinates(ships, origin);
+            }
+
+            // Iterate through possible headings to find a legal heading.
+            // If no heading is legal, pick another origin.
+            let mut random = thread_rng();
+            let mut headings = vec![
+                Heading::North,
+                Heading::East,
+                Heading::West,
+                Heading::South
+            ];
+            headings.shuffle(&mut random);
+
+            for h in headings {
+                if is_legal_heading(origin, h, length) {
+                    heading = h;
+                    heading_is_legal = true;
+                }
+            }
         }
 
         // Create ship with legal origin and legal heading
         let ship = Ship::new(origin, board, heading, length);
+        // If the ship placement is legal, return it.
+        // Otherwise start the process again.
         if is_legal_ship_placement(ships, ship) {
             return Ship::new(origin, board, heading, length);
         }
