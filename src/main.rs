@@ -588,46 +588,50 @@ fn is_legal_ship_placement(ships: &Vec<Ship>, new_ship: Ship) -> bool {
 fn autocreate_ship<'a>(ships: &Vec<Ship>, board: &'a Board, length: u16) -> Ship<'a> {
     loop {
         // Create an origin
-        // Any origin on the board is legal as long
-        // as there's not already a ship there
+        // Any origin on the board is legal as long as there's not already a ship there
         let mut origin = auto_select_origin(board);
         let mut origin_is_legal = !is_ship_at_coordinates(ships, origin);
+
+        // Select a heading randomly.
+        // Any heading that doesn't lead the ship off the board is valid.
         let mut heading : Heading = rand::random();
         let mut heading_is_legal = is_legal_heading(origin, heading, length);
-        // If the first try isn't good, keep going until it is.
 
-        while !origin_is_legal && !heading_is_legal {
+        // If origin isn't legal, pick another one randomly until it is.
+        while !origin_is_legal {
+            origin = auto_select_origin(board);
+            origin_is_legal = is_ship_at_coordinates(ships, origin);
+        }
 
-            while origin_is_legal == false {
-                origin = auto_select_origin(board);
-                origin_is_legal = is_ship_at_coordinates(ships, origin);
-            }
+        // Iterate through possible headings to find a legal heading.
+        let mut random = thread_rng();
+        let mut headings = vec![
+            Heading::North,
+            Heading::East,
+            Heading::West,
+            Heading::South
+        ];
+        headings.shuffle(&mut random);
 
-            // Iterate through possible headings to find a legal heading.
-            // If no heading is legal, pick another origin.
-            let mut random = thread_rng();
-            let mut headings = vec![
-                Heading::North,
-                Heading::East,
-                Heading::West,
-                Heading::South
-            ];
-            headings.shuffle(&mut random);
-
-            for h in headings {
-                if is_legal_heading(origin, h, length) {
-                    heading = h;
-                    heading_is_legal = true;
-                }
+        for h in headings {
+            if is_legal_heading(origin, h, length) {
+                heading = h;
+                heading_is_legal = true;
+                break;
             }
         }
 
-        // Create ship with legal origin and legal heading
-        let ship = Ship::new(origin, board, heading, length);
-        // If the ship placement is legal, return it.
-        // Otherwise start the process again.
-        if is_legal_ship_placement(ships, ship) {
-            return Ship::new(origin, board, heading, length);
+        // If both heading and origin aren't good, we can't continue.
+        // Try again.
+        if origin_is_legal && heading_is_legal {
+            // Create ship with legal origin and legal heading
+            let ship = Ship::new(origin, board, heading, length);
+            // If the newly created ship doesn't collide with existing ships,
+            // it's legal.
+            if is_legal_ship_placement(ships, ship) {
+                return Ship::new(origin, board, heading, length);
+            }
+            // Otherwise, find a new origin and heading and try again.
         }
     }
 }
