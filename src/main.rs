@@ -756,6 +756,8 @@ fn main() {
                         stdout.flush().unwrap();
 
                         let ship_lengths_to_place = vec![2, 2, 3, 4, 5];
+                        let mut tentative_ship = Ship::new(blue_cursor.coordinates, &blue_board, Heading::East, 2);
+
                         for c in stdin.keys() {
                             match c.unwrap() {
                                 Key::Char('q') => {
@@ -764,20 +766,24 @@ fn main() {
                                 },
                                 Key::Char('w') => {
                                     blue_cursor = blue_cursor.on_move(Heading::North);
+                                    tentative_ship = Ship::new(blue_cursor.coordinates, &blue_board, Heading::East, 2);
                                 },
                                 Key::Char('a') => {
                                     blue_cursor = blue_cursor.on_move(Heading::West);
+                                    tentative_ship = Ship::new(blue_cursor.coordinates, &blue_board, Heading::East, 2);
                                 },
                                 Key::Char('s') => {
                                     blue_cursor = blue_cursor.on_move(Heading::South);
+                                    tentative_ship = Ship::new(blue_cursor.coordinates, &blue_board, Heading::East, 2);
                                 },
                                 Key::Char('d') => {
                                     blue_cursor = blue_cursor.on_move(Heading::East);
+                                    tentative_ship = Ship::new(blue_cursor.coordinates, &blue_board, Heading::East, 2);
                                 },
                                 Key::Char('f') => {
                                     // Add a new ship of the given length and orientation
                                     // the the list of player ships.
-                                    player_ships.push(Ship::new(blue_cursor.coordinates, &blue_board, Heading::West, 2));
+                                    player_ships.push(Ship::new(blue_cursor.coordinates, &blue_board, Heading::East, 2));
                                 },
                                 Key::Char('r') => {
 
@@ -786,6 +792,7 @@ fn main() {
                             }
 
                             blue_board.render(&mut stdout);
+                            tentative_ship.render(&mut stdout);
                             for ship in player_ships.iter() {
                                 ship.render(&mut stdout);
                             }
