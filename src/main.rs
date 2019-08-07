@@ -211,7 +211,7 @@ impl<'a> Attack<'a> {
         }
     }
 
-    fn render(self, stdout: &mut RawTerminal<Stdout>) {
+    fn render(&self, stdout: &mut RawTerminal<Stdout>) {
         let symbol = match self.result {
             AttackResults::Hit => "X",
             AttackResults::Miss => "^",
@@ -713,7 +713,7 @@ fn main() {
                     Label::new(Coordinates { x: 1, y: 1 }, "Rustbuckets v0.1.0".to_string());
 
                 // Put some ships in the red_board
-                for length in vec![2, 2, 3, 4, 5] {
+                for length in vec![5, 4, 3, 2, 2] {
                     ships.push(autocreate_ship(&ships, &red_board, length));
                 }
 
@@ -725,7 +725,7 @@ fn main() {
                 for ship in ships.iter() {
                     ship.render(&mut stdout);
                 }
-                for attack in attacks.clone() {
+                for attack in attacks.iter() {
                     attack.render(&mut stdout);
                 }
                 cursor.render(&mut stdout);
@@ -775,7 +775,7 @@ fn main() {
                     for ship in ships.iter() {
                         ship.render(&mut stdout);
                     }
-                    for attack in attacks.clone() {
+                    for attack in attacks.iter() {
                         attack.render(&mut stdout);
                     }
                     cursor.render(&mut stdout);
