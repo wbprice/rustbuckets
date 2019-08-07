@@ -572,7 +572,7 @@ fn is_ship_at_coordinates(ships: &Vec<Ship>, coordinates: Coordinates) -> bool {
     return result;
 }
 
-fn is_legal_ship_placement(ships: &Vec<Ship>, new_ship: Ship) -> bool {
+fn is_legal_ship_placement(ships: &Vec<Ship>, new_ship: &Ship) -> bool {
     let mut result = true;
     for ship in ships {
         // If a ship segement belonging to new_ship is also in ship
@@ -630,7 +630,7 @@ fn autocreate_ship<'a>(ships: &Vec<Ship>, board: &'a Board, length: u16) -> Ship
             // If the newly created ship doesn't collide with existing ships,
             // it's legal.
             // Otherwise, find a new origin and heading and try again.
-            if is_legal_ship_placement(ships, ship) {
+            if is_legal_ship_placement(ships, &ship) {
                 return Ship::new(origin, board, heading, length);
             }
         }
@@ -758,8 +758,10 @@ fn main() {
                                 Key::Char('f') => {
                                     // Add a new ship of the given length and orientation
                                     // the the list of player ships.
-                                    player_ships.push(Ship::new(blue_cursor.coordinates, &blue_board, tentative_ship_heading, length));
-                                    tentative_ship_length = ship_lengths_to_place.pop();
+                                    if is_legal_ship_placement(&player_ships, &tentative_ship) {
+                                        player_ships.push(Ship::new(blue_cursor.coordinates, &blue_board, tentative_ship_heading, length));
+                                        tentative_ship_length = ship_lengths_to_place.pop();
+                                    }
                                 },
                                 Key::Char('r') => {
                                     // Should rotate the ship to the other legal heading (unless it can't).
@@ -1035,7 +1037,7 @@ mod tests {
         let board = Board::new(Faction::Blue, Coordinates { x: 0, y: 0 }, 8, 8);
         let ships: Vec<Ship> = vec![];
         let tentative_ship = Ship::new(Coordinates { x: 0, y: 1 }, &board, Heading::South, 2);
-        let result = is_legal_ship_placement(&ships, tentative_ship);
+        let result = is_legal_ship_placement(&ships, &tentative_ship);
         assert_eq!(result, true);
     }
 
@@ -1049,7 +1051,7 @@ mod tests {
             2,
         )];
         let tentative_ship = Ship::new(Coordinates { x: 0, y: 1 }, &board, Heading::South, 2);
-        let result = is_legal_ship_placement(&ships, tentative_ship);
+        let result = is_legal_ship_placement(&ships, &tentative_ship);
 
         assert_eq!(result, false);
     }
