@@ -755,40 +755,57 @@ fn main() {
                         blue_cursor.render(&mut stdout);
                         stdout.flush().unwrap();
 
-                        let ship_lengths_to_place = vec![2, 2, 3, 4, 5];
-                        let mut tentative_ship = Ship::new(blue_cursor.coordinates, &blue_board, Heading::East, 2);
+                        let mut ship_lengths_to_place = vec![2, 2, 3, 4, 5];
+                        let mut tentative_ship_heading = Heading::East;
+                        let mut tentative_ship_length = ship_lengths_to_place.pop();
+                        let mut tentative_ship = Ship::new(blue_cursor.coordinates, &blue_board, tentative_ship_heading, 5);
 
                         for c in stdin.keys() {
-                            match c.unwrap() {
-                                Key::Char('q') => {
-                                    game = game.toggle_mode(Mode::Title);
-                                    break;
+                            match tentative_ship_length {
+                                Some(length) => {
+                                    match c.unwrap() {
+                                        Key::Char('q') => {
+                                            game = game.toggle_mode(Mode::Title);
+                                            break;
+                                        },
+                                        Key::Char('w') => {
+                                            blue_cursor = blue_cursor.on_move(Heading::North);
+                                            tentative_ship = Ship::new(blue_cursor.coordinates, &blue_board, tentative_ship_heading, length);
+                                        },
+                                        Key::Char('a') => {
+                                            blue_cursor = blue_cursor.on_move(Heading::West);
+                                            tentative_ship = Ship::new(blue_cursor.coordinates, &blue_board, tentative_ship_heading, length);
+                                        },
+                                        Key::Char('s') => {
+                                            blue_cursor = blue_cursor.on_move(Heading::South);
+                                            tentative_ship = Ship::new(blue_cursor.coordinates, &blue_board, tentative_ship_heading, length);
+                                        },
+                                        Key::Char('d') => {
+                                            blue_cursor = blue_cursor.on_move(Heading::East);
+                                            tentative_ship = Ship::new(blue_cursor.coordinates, &blue_board, tentative_ship_heading, length);
+                                        },
+                                        Key::Char('f') => {
+                                            // Add a new ship of the given length and orientation
+                                            // the the list of player ships.
+                                            player_ships.push(Ship::new(blue_cursor.coordinates, &blue_board, tentative_ship_heading, length));
+                                            tentative_ship_length = ship_lengths_to_place.pop();
+                                        },
+                                        Key::Char('r') => {
+                                            // Should rotate the ship to the other legal heading (unless it can't).
+                                            tentative_ship_heading = match tentative_ship_heading {
+                                                Heading::East => Heading::South,
+                                                Heading::South => Heading::East,
+                                                _ => Heading::South
+                                            };
+                                            tentative_ship = Ship::new(blue_cursor.coordinates, &blue_board, tentative_ship_heading, length);
+                                        }
+                                        _ => {}
+                                    }
                                 },
-                                Key::Char('w') => {
-                                    blue_cursor = blue_cursor.on_move(Heading::North);
-                                    tentative_ship = Ship::new(blue_cursor.coordinates, &blue_board, Heading::East, 2);
-                                },
-                                Key::Char('a') => {
-                                    blue_cursor = blue_cursor.on_move(Heading::West);
-                                    tentative_ship = Ship::new(blue_cursor.coordinates, &blue_board, Heading::East, 2);
-                                },
-                                Key::Char('s') => {
-                                    blue_cursor = blue_cursor.on_move(Heading::South);
-                                    tentative_ship = Ship::new(blue_cursor.coordinates, &blue_board, Heading::East, 2);
-                                },
-                                Key::Char('d') => {
-                                    blue_cursor = blue_cursor.on_move(Heading::East);
-                                    tentative_ship = Ship::new(blue_cursor.coordinates, &blue_board, Heading::East, 2);
-                                },
-                                Key::Char('f') => {
-                                    // Add a new ship of the given length and orientation
-                                    // the the list of player ships.
-                                    player_ships.push(Ship::new(blue_cursor.coordinates, &blue_board, Heading::East, 2));
-                                },
-                                Key::Char('r') => {
-
+                                None => {
+                                    // Nothing left to do, time to play!
+                                    game.toggle_game_mode();
                                 }
-                                _ => {}
                             }
 
                             blue_board.render(&mut stdout);
@@ -801,7 +818,7 @@ fn main() {
                         }
                     },
                     GameMode::Play => {
-                    
+
                     }
                 }
 
