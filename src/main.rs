@@ -32,20 +32,13 @@ enum Mode {
     Quit
 }
 
-#[derive(Copy, Clone)]
-enum GameMode {
-    Setup,
-    Play
-}
-
 #[derive(Clone, Copy)]
 struct Game {
     blue_score: Scores,
     red_score: Scores,
     turn: Faction,
     origin: Coordinates,
-    mode: Mode,
-    game_mode: GameMode
+    mode: Mode
 }
 
 impl Game {
@@ -56,7 +49,6 @@ impl Game {
             turn: Faction::Blue,
             origin,
             mode: Mode::Title,
-            game_mode: GameMode::Setup
         }
     }
 
@@ -122,20 +114,6 @@ impl Game {
             }
             Mode::Quit => {
                 game.mode = Mode::Quit;
-                game
-            }
-        }
-    }
-
-    fn toggle_game_mode(self) -> Game {
-        let mut game = self.clone();
-        match game.game_mode {
-            GameMode::Setup => {
-                game.game_mode = GameMode::Play;
-                game
-            },
-            GameMode::Play => {
-                game.game_mode = GameMode::Setup;
                 game
             }
         }
@@ -733,8 +711,7 @@ fn main() {
                 let mut attacks: Vec<Attack> = Vec::new();
                 let mut enemy_ships: Vec<Ship> = Vec::new();
                 let mut player_ships: Vec<Ship> = Vec::new();
-                let title =
-                    Label::new(Coordinates { x: 1, y: 1 }, "Rustbuckets v0.1.0".to_string());
+                let title = Label::new(Coordinates { x: 1, y: 1 }, "Rustbuckets v0.1.0".to_string());
 
                 // Initial render
                 red_board.render(&mut stdout);
@@ -743,94 +720,88 @@ fn main() {
                 title.render(&mut stdout);
                 stdout.flush().unwrap();
 
-                match game.game_mode {
-                    GameMode::Setup => {
+                // Allow the AI to put some ships on the red board.
+                for length in vec![5, 4, 3, 2, 2] {
+                    enemy_ships.push(autocreate_ship(&enemy_ships, &red_board, length));
+                }
 
-                        // Allow the AI to put some ships on the red board.
-                        for length in vec![5, 4, 3, 2, 2] {
-                            enemy_ships.push(autocreate_ship(&enemy_ships, &red_board, length));
-                        }
+                let mut ship_lengths_to_place = vec![2, 2, 3, 4, 5];
+                let mut tentative_ship_heading = Heading::East;
+                let mut tentative_ship_length = ship_lengths_to_place.pop();
+                let mut tentative_ship = Ship::new(blue_cursor.coordinates, &blue_board, tentative_ship_heading, 5);
 
-                        let mut ship_lengths_to_place = vec![2, 2, 3, 4, 5];
-                        let mut tentative_ship_heading = Heading::East;
-                        let mut tentative_ship_length = ship_lengths_to_place.pop();
-                        let mut tentative_ship = Ship::new(blue_cursor.coordinates, &blue_board, tentative_ship_heading, 5);
-
-                        for c in stdin.keys() {
-                            match tentative_ship_length {
-                                Some(length) => {
-                                    match c.unwrap() {
-                                        Key::Char('q') => {
-                                            game = game.toggle_mode(Mode::Title);
-                                            break;
-                                        },
-                                        Key::Char('w') => {
-                                            blue_cursor = blue_cursor.on_move(Heading::North);
-                                            tentative_ship = Ship::new(blue_cursor.coordinates, &blue_board, tentative_ship_heading, length);
-                                        },
-                                        Key::Char('a') => {
-                                            blue_cursor = blue_cursor.on_move(Heading::West);
-                                            tentative_ship = Ship::new(blue_cursor.coordinates, &blue_board, tentative_ship_heading, length);
-                                        },
-                                        Key::Char('s') => {
-                                            blue_cursor = blue_cursor.on_move(Heading::South);
-                                            tentative_ship = Ship::new(blue_cursor.coordinates, &blue_board, tentative_ship_heading, length);
-                                        },
-                                        Key::Char('d') => {
-                                            blue_cursor = blue_cursor.on_move(Heading::East);
-                                            tentative_ship = Ship::new(blue_cursor.coordinates, &blue_board, tentative_ship_heading, length);
-                                        },
-                                        Key::Char('f') => {
-                                            // Add a new ship of the given length and orientation
-                                            // the the list of player ships.
-                                            player_ships.push(Ship::new(blue_cursor.coordinates, &blue_board, tentative_ship_heading, length));
-                                            tentative_ship_length = ship_lengths_to_place.pop();
-                                        },
-                                        Key::Char('r') => {
-                                            // Should rotate the ship to the other legal heading (unless it can't).
-                                            tentative_ship_heading = match tentative_ship_heading {
-                                                Heading::East => Heading::South,
-                                                Heading::South => Heading::East,
-                                                _ => Heading::South
-                                            };
-                                            tentative_ship = Ship::new(blue_cursor.coordinates, &blue_board, tentative_ship_heading, length);
-                                        }
-                                        _ => {}
-                                    }
-                                },
-                                None => {
-                                    // Nothing left to do, time to play!
-                                    game.toggle_game_mode();
+                for c in stdin.keys() {
+                    match tentative_ship_length {
+                        Some(length) => {
+                            // Place ships loop.
+                            match c.unwrap() {
+                                Key::Char('q') => {
+                                    game = game.toggle_mode(Mode::Title);
                                     break;
+                                },
+                                Key::Char('w') => {
+                                    blue_cursor = blue_cursor.on_move(Heading::North);
+                                    tentative_ship = Ship::new(blue_cursor.coordinates, &blue_board, tentative_ship_heading, length);
+                                },
+                                Key::Char('a') => {
+                                    blue_cursor = blue_cursor.on_move(Heading::West);
+                                    tentative_ship = Ship::new(blue_cursor.coordinates, &blue_board, tentative_ship_heading, length);
+                                },
+                                Key::Char('s') => {
+                                    blue_cursor = blue_cursor.on_move(Heading::South);
+                                    tentative_ship = Ship::new(blue_cursor.coordinates, &blue_board, tentative_ship_heading, length);
+                                },
+                                Key::Char('d') => {
+                                    blue_cursor = blue_cursor.on_move(Heading::East);
+                                    tentative_ship = Ship::new(blue_cursor.coordinates, &blue_board, tentative_ship_heading, length);
+                                },
+                                Key::Char('f') => {
+                                    // Add a new ship of the given length and orientation
+                                    // the the list of player ships.
+                                    player_ships.push(Ship::new(blue_cursor.coordinates, &blue_board, tentative_ship_heading, length));
+                                    tentative_ship_length = ship_lengths_to_place.pop();
+                                },
+                                Key::Char('r') => {
+                                    // Should rotate the ship to the other legal heading (unless it can't).
+                                    tentative_ship_heading = match tentative_ship_heading {
+                                        Heading::East => Heading::South,
+                                        Heading::South => Heading::East,
+                                        _ => Heading::South
+                                    };
+                                    tentative_ship = Ship::new(blue_cursor.coordinates, &blue_board, tentative_ship_heading, length);
                                 }
+                                _ => {}
                             }
 
+                            // Rerender after keypresses
+                            red_board.render(&mut stdout);
                             blue_board.render(&mut stdout);
-                            tentative_ship.render(&mut stdout);
+                            title.render(&mut stdout);
+                            game.render(&mut stdout);
                             for ship in player_ships.iter() {
                                 ship.render(&mut stdout);
                             }
-                            blue_cursor.render(&mut stdout);
+                            tentative_ship.render(&mut stdout);
+                            for attack in attacks.iter() {
+                                attack.render(&mut stdout);
+                            }
                             stdout.flush().unwrap();
-                        }
-                    },
-                    GameMode::Play => {
+                        },
+                        None => {
+                            // Initial render
+                            red_board.render(&mut stdout);
+                            blue_board.render(&mut stdout);
+                            title.render(&mut stdout);
+                            game.render(&mut stdout);
+                            for ship in enemy_ships.iter() {
+                                ship.render(&mut stdout);
+                            }
+                            for attack in attacks.iter() {
+                                attack.render(&mut stdout);
+                            }
+                            red_cursor.render(&mut stdout);
+                            stdout.flush().unwrap();
 
-                        // Initial render
-                        red_board.render(&mut stdout);
-                        blue_board.render(&mut stdout);
-                        title.render(&mut stdout);
-                        game.render(&mut stdout);
-                        for ship in enemy_ships.iter() {
-                            ship.render(&mut stdout);
-                        }
-                        for attack in attacks.iter() {
-                            attack.render(&mut stdout);
-                        }
-                        red_cursor.render(&mut stdout);
-                        stdout.flush().unwrap();
-
-                        for c in stdin.keys() {
                             match c.unwrap() {
                                 Key::Char('q') => {
                                     game = game.toggle_mode(Mode::Title);
@@ -864,12 +835,12 @@ fn main() {
                                 break;
                             }
 
-                            // Initial render
+                            // Rerender after keypresses
                             red_board.render(&mut stdout);
                             blue_board.render(&mut stdout);
                             title.render(&mut stdout);
                             game.render(&mut stdout);
-                            for ship in enemy_ships.iter() {
+                            for ship in player_ships.iter() {
                                 ship.render(&mut stdout);
                             }
                             for attack in attacks.iter() {
@@ -880,7 +851,7 @@ fn main() {
                         }
                     }
                 }
-            }
+            },
             Mode::Endscreen => {
                 // Endscreen mode setup
                 let mut stdout = stdout().into_raw_mode().unwrap();
