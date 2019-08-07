@@ -751,10 +751,6 @@ fn main() {
                             enemy_ships.push(autocreate_ship(&enemy_ships, &red_board, length));
                         }
 
-                        // initial render of cursor.
-                        blue_cursor.render(&mut stdout);
-                        stdout.flush().unwrap();
-
                         let mut ship_lengths_to_place = vec![2, 2, 3, 4, 5];
                         let mut tentative_ship_heading = Heading::East;
                         let mut tentative_ship_length = ship_lengths_to_place.pop();
@@ -805,6 +801,7 @@ fn main() {
                                 None => {
                                     // Nothing left to do, time to play!
                                     game.toggle_game_mode();
+                                    break;
                                 }
                             }
 
@@ -819,60 +816,70 @@ fn main() {
                     },
                     GameMode::Play => {
 
+                        // Initial render
+                        red_board.render(&mut stdout);
+                        blue_board.render(&mut stdout);
+                        title.render(&mut stdout);
+                        game.render(&mut stdout);
+                        for ship in enemy_ships.iter() {
+                            ship.render(&mut stdout);
+                        }
+                        for attack in attacks.iter() {
+                            attack.render(&mut stdout);
+                        }
+                        red_cursor.render(&mut stdout);
+                        stdout.flush().unwrap();
+
+                        for c in stdin.keys() {
+                            match c.unwrap() {
+                                Key::Char('q') => {
+                                    game = game.toggle_mode(Mode::Title);
+                                    break;
+                                }
+                                Key::Char('w') => {
+                                    red_cursor = red_cursor.on_move(Heading::North);
+                                }
+                                Key::Char('a') => {
+                                    red_cursor = red_cursor.on_move(Heading::West);
+                                }
+                                Key::Char('s') => {
+                                    red_cursor = red_cursor.on_move(Heading::South);
+                                }
+                                Key::Char('d') => {
+                                    red_cursor = red_cursor.on_move(Heading::East);
+                                }
+                                Key::Char('f') => {
+                                    let attack = Attack::new(red_cursor.coordinates, &red_board, &enemy_ships);
+                                    game = match attack.result {
+                                        AttackResults::Hit => game.increment_hits(),
+                                        AttackResults::Miss => game.increment_misses(),
+                                    };
+                                    attacks.push(attack);
+                                }
+                                _ => {}
+                            }
+
+                            if game.blue_score.hits >= 17 || game.red_score.hits >= 17 {
+                                game = game.toggle_mode(Mode::Endscreen);
+                                break;
+                            }
+
+                            // Initial render
+                            red_board.render(&mut stdout);
+                            blue_board.render(&mut stdout);
+                            title.render(&mut stdout);
+                            game.render(&mut stdout);
+                            for ship in enemy_ships.iter() {
+                                ship.render(&mut stdout);
+                            }
+                            for attack in attacks.iter() {
+                                attack.render(&mut stdout);
+                            }
+                            red_cursor.render(&mut stdout);
+                            stdout.flush().unwrap();
+                        }
                     }
                 }
-
-                /*
-                for c in stdin.keys() {
-
-                    match c.unwrap() {
-                        Key::Char('q') => {
-                            game = game.toggle_mode(Mode::Title);
-                            break;
-                        }
-                        Key::Char('w') => {
-                            red_cursor = red_cursor.on_move(Heading::North);
-                        }
-                        Key::Char('a') => {
-                            red_cursor = red_cursor.on_move(Heading::West);
-                        }
-                        Key::Char('s') => {
-                            red_cursor = red_cursor.on_move(Heading::South);
-                        }
-                        Key::Char('d') => {
-                            red_cursor = red_cursor.on_move(Heading::East);
-                        }
-                        Key::Char('f') => {
-                            let attack = Attack::new(red_cursor.coordinates, &red_board, &enemy_ships);
-                            game = match attack.result {
-                                AttackResults::Hit => game.increment_hits(),
-                                AttackResults::Miss => game.increment_misses(),
-                            };
-                            attacks.push(attack);
-                        }
-                        _ => {}
-                    }
-
-                    if game.blue_score.hits >= 17 || game.red_score.hits >= 17 {
-                        game = game.toggle_mode(Mode::Endscreen);
-                        break;
-                    }
-
-                    // Initial render
-                    red_board.render(&mut stdout);
-                    blue_board.render(&mut stdout);
-                    title.render(&mut stdout);
-                    game.render(&mut stdout);
-                    for ship in enemy_ships.iter() {
-                        ship.render(&mut stdout);
-                    }
-                    for attack in attacks.iter() {
-                        attack.render(&mut stdout);
-                    }
-                    red_cursor.render(&mut stdout);
-                    stdout.flush().unwrap();
-                }
-                */
             }
             Mode::Endscreen => {
                 // Endscreen mode setup
