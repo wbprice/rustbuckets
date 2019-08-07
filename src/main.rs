@@ -10,8 +10,6 @@ use termion::input::TermRead;
 use termion::raw::{IntoRawMode, RawTerminal};
 use termion::{color, style};
 
-
-
 #[derive(Clone, Copy)]
 struct Scores {
     hits: u16,
@@ -29,7 +27,7 @@ enum Mode {
     Title,
     Game,
     Endscreen,
-    Quit
+    Quit,
 }
 
 #[derive(Clone, Copy)]
@@ -38,7 +36,7 @@ struct Game {
     red_score: Scores,
     turn: Faction,
     origin: Coordinates,
-    mode: Mode
+    mode: Mode,
 }
 
 impl Game {
@@ -448,7 +446,6 @@ struct Ship<'a> {
     segments: Vec<ShipSegment>,
 }
 
-
 impl<'a> Ship<'a> {
     fn new(origin: Coordinates, board: &'a Board, heading: Heading, length: u16) -> Ship {
         let mut segments: Vec<ShipSegment> = vec![];
@@ -711,7 +708,8 @@ fn main() {
                 let mut attacks: Vec<Attack> = Vec::new();
                 let mut enemy_ships: Vec<Ship> = Vec::new();
                 let mut player_ships: Vec<Ship> = Vec::new();
-                let title = Label::new(Coordinates { x: 1, y: 1 }, "Rustbuckets v0.1.0".to_string());
+                let title =
+                    Label::new(Coordinates { x: 1, y: 1 }, "Rustbuckets v0.1.0".to_string());
 
                 // Initial render
                 red_board.render(&mut stdout);
@@ -728,7 +726,12 @@ fn main() {
                 let mut ship_lengths_to_place = vec![2, 2, 3, 4, 5];
                 let mut tentative_ship_heading = Heading::East;
                 let mut tentative_ship_length = ship_lengths_to_place.pop();
-                let mut tentative_ship = Ship::new(blue_cursor.coordinates, &blue_board, tentative_ship_heading, 5);
+                let mut tentative_ship = Ship::new(
+                    blue_cursor.coordinates,
+                    &blue_board,
+                    tentative_ship_heading,
+                    5,
+                );
 
                 for c in stdin.keys() {
                     match tentative_ship_length {
@@ -738,39 +741,69 @@ fn main() {
                                 Key::Char('q') => {
                                     game = game.toggle_mode(Mode::Title);
                                     break;
-                                },
+                                }
                                 Key::Char('w') => {
                                     blue_cursor = blue_cursor.on_move(Heading::North);
-                                    tentative_ship = Ship::new(blue_cursor.coordinates, &blue_board, tentative_ship_heading, length);
-                                },
+                                    tentative_ship = Ship::new(
+                                        blue_cursor.coordinates,
+                                        &blue_board,
+                                        tentative_ship_heading,
+                                        length,
+                                    );
+                                }
                                 Key::Char('a') => {
                                     blue_cursor = blue_cursor.on_move(Heading::West);
-                                    tentative_ship = Ship::new(blue_cursor.coordinates, &blue_board, tentative_ship_heading, length);
-                                },
+                                    tentative_ship = Ship::new(
+                                        blue_cursor.coordinates,
+                                        &blue_board,
+                                        tentative_ship_heading,
+                                        length,
+                                    );
+                                }
                                 Key::Char('s') => {
                                     blue_cursor = blue_cursor.on_move(Heading::South);
-                                    tentative_ship = Ship::new(blue_cursor.coordinates, &blue_board, tentative_ship_heading, length);
-                                },
+                                    tentative_ship = Ship::new(
+                                        blue_cursor.coordinates,
+                                        &blue_board,
+                                        tentative_ship_heading,
+                                        length,
+                                    );
+                                }
                                 Key::Char('d') => {
                                     blue_cursor = blue_cursor.on_move(Heading::East);
-                                    tentative_ship = Ship::new(blue_cursor.coordinates, &blue_board, tentative_ship_heading, length);
-                                },
+                                    tentative_ship = Ship::new(
+                                        blue_cursor.coordinates,
+                                        &blue_board,
+                                        tentative_ship_heading,
+                                        length,
+                                    );
+                                }
                                 Key::Char('f') => {
                                     // Add a new ship of the given length and orientation
                                     // the the list of player ships.
                                     if is_legal_ship_placement(&player_ships, &tentative_ship) {
-                                        player_ships.push(Ship::new(blue_cursor.coordinates, &blue_board, tentative_ship_heading, length));
+                                        player_ships.push(Ship::new(
+                                            blue_cursor.coordinates,
+                                            &blue_board,
+                                            tentative_ship_heading,
+                                            length,
+                                        ));
                                         tentative_ship_length = ship_lengths_to_place.pop();
                                     }
-                                },
+                                }
                                 Key::Char('r') => {
                                     // Should rotate the ship to the other legal heading (unless it can't).
                                     tentative_ship_heading = match tentative_ship_heading {
                                         Heading::East => Heading::South,
                                         Heading::South => Heading::East,
-                                        _ => Heading::South
+                                        _ => Heading::South,
                                     };
-                                    tentative_ship = Ship::new(blue_cursor.coordinates, &blue_board, tentative_ship_heading, length);
+                                    tentative_ship = Ship::new(
+                                        blue_cursor.coordinates,
+                                        &blue_board,
+                                        tentative_ship_heading,
+                                        length,
+                                    );
                                 }
                                 _ => {}
                             }
@@ -788,7 +821,7 @@ fn main() {
                                 attack.render(&mut stdout);
                             }
                             stdout.flush().unwrap();
-                        },
+                        }
                         None => {
                             // Initial render
                             red_board.render(&mut stdout);
@@ -822,7 +855,11 @@ fn main() {
                                     red_cursor = red_cursor.on_move(Heading::East);
                                 }
                                 Key::Char('f') => {
-                                    let attack = Attack::new(red_cursor.coordinates, &red_board, &enemy_ships);
+                                    let attack = Attack::new(
+                                        red_cursor.coordinates,
+                                        &red_board,
+                                        &enemy_ships,
+                                    );
                                     game = match attack.result {
                                         AttackResults::Hit => game.increment_hits(),
                                         AttackResults::Miss => game.increment_misses(),
@@ -853,7 +890,7 @@ fn main() {
                         }
                     }
                 }
-            },
+            }
             Mode::Endscreen => {
                 // Endscreen mode setup
                 let mut stdout = stdout().into_raw_mode().unwrap();
