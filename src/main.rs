@@ -588,6 +588,31 @@ fn is_legal_ship_placement(ships: &Vec<Ship>, new_ship: &Ship) -> bool {
     result
 }
 
+fn naive_autoselect_attack_coordinates<'a>(attacks: &Vec<Attack>, board: &'a Board) -> Option<Coordinates> {
+    // Naive auto attack.
+    // It should make a random guess that:
+    // - is on the board,
+    // - hasn't already been guessed.
+    // If no legal attacks are possible, exit early
+    if attacks.len() == board.width as usize * board.height as usize {
+        return None
+    }
+
+    let mut proposed_coordinates = auto_select_origin(board);
+    loop {
+        let already_attacked = match attacks.iter().find(|attack| {
+            proposed_coordinates.x == attack.coordinates.x &&
+            proposed_coordinates.y == attack.coordinates.y
+        }) { Some(_) => true, None => false };
+
+        if already_attacked {
+            proposed_coordinates = auto_select_origin(board);
+        } else {
+            return Some(proposed_coordinates)
+        }
+    }
+}
+
 fn autocreate_ship<'a>(ships: &Vec<Ship>, board: &'a Board, length: u16) -> Ship<'a> {
     loop {
         // Create an origin
@@ -1112,5 +1137,41 @@ mod tests {
             ships.push(ship);
         }
         assert_eq!(ships.len(), 5);
+    }
+
+    #[test]
+    fn test_naive_autoselect_attack_coordinates_empty_board() {
+        let board = Board::new(Faction::Blue, Coordinates { x: 1, y: 2 }, 8, 8);
+        let attacks : Vec<Attack> = Vec::new();
+        let coordinates = naive_autoselect_attack_coordinates(&attacks, &board).unwrap();
+
+        assert!(coordinates.x <= 7);
+        assert!(coordinates.x >= 0);
+        assert!(coordinates.y >= 0);
+        assert!(coordinates.y <= 7);
+    }
+
+    #[test]
+    fn test_naive_autoselect_attack_coordinates_nonempty_board() {
+        let board = Board::new(Faction::Blue, Coordinates { x: 1, y: 2 }, 8, 8);
+        let ships : Vec<Ship> = Vec::new();
+        let mut attacks : Vec<Attack> = Vec::new();
+        for _ in 0..63 {
+            let coordinates = naive_autoselect_attack_coordinates(&attacks, &board).unwrap();
+            attacks.push(Attack::new(coordinates, &board, &ships));
+        }
+
+    }
+
+    #[test]
+    fn test_naive_autoselect_attack_coordinates_full_board() {
+        let board = Board::new(Faction::Blue, Coordinates { x: 1, y: 2 }, 8, 8);
+        let attacks : Vec<Attack> = Vec::new();
+        let coordinates = naive_autoselect_attack_coordinates(&attacks, &board).unwrap();
+
+        assert!(coordinates.x <= 7);
+        assert!(coordinates.x >= 0);
+        assert!(coordinates.y >= 0);
+        assert!(coordinates.y <= 7);
     }
 }
