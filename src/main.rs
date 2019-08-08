@@ -861,9 +861,6 @@ fn main() {
                             blue_board.render(&mut stdout);
                             title.render(&mut stdout);
                             game.render(&mut stdout);
-                            for ship in enemy_ships.iter() {
-                                ship.render(&mut stdout);
-                            }
                             for attack in player_attacks.iter() {
                                 attack.render(&mut stdout);
                             }
@@ -913,7 +910,7 @@ fn main() {
                                             let attack = Attack::new(
                                                 coordinates,
                                                 &blue_board,
-                                                &player_ships
+                                                &enemy_ships
                                             );
                                             game = match attack.result {
                                                 AttackResults::Hit => game.increment_hits(),
@@ -944,6 +941,9 @@ fn main() {
                                 ship.render(&mut stdout);
                             }
                             for attack in enemy_attacks.iter() {
+                                attack.render(&mut stdout);
+                            }
+                            for attack in player_attacks.iter() {
                                 attack.render(&mut stdout);
                             }
                             red_cursor.render(&mut stdout);
