@@ -9,6 +9,7 @@ use termion::event::Key;
 use termion::input::TermRead;
 use termion::raw::{IntoRawMode, RawTerminal};
 use termion::{color, style};
+use std::{thread, time};
 
 #[derive(Clone, Copy)]
 struct Scores {
@@ -593,7 +594,8 @@ fn naive_autoselect_attack_coordinates<'a>(attacks: &Vec<Attack>, board: &'a Boa
     // It should make a random guess that:
     // - is on the board,
     // - hasn't already been guessed.
-    // If no legal attacks are possible, exit early
+    // Return Some containing the coordiantes
+    // If no legal attacks are possible, return None.
     if attacks.len() == board.width as usize * board.height as usize {
         return None
     }
@@ -611,6 +613,14 @@ fn naive_autoselect_attack_coordinates<'a>(attacks: &Vec<Attack>, board: &'a Boa
             return Some(proposed_coordinates)
         }
     }
+}
+
+fn simulate_thought() {
+    // Sleep between 1 to 4 seconds to simulate a real head scratcher.
+    let mut rng = thread_rng();
+    let time_to_wait = rng.gen_range(1, 4);
+    let wait_until = time::Duration::from_secs(time_to_wait);
+    thread::sleep(wait_until);
 }
 
 fn autocreate_ship<'a>(ships: &Vec<Ship>, board: &'a Board, length: u16) -> Ship<'a> {
@@ -730,7 +740,8 @@ fn main() {
                 let blue_board = Board::new(Faction::Red, Coordinates { x: 1, y: 20 }, 8, 8);
                 let mut red_cursor = Cursor::new(Coordinates { x: 0, y: 0 }, &red_board);
                 let mut blue_cursor = Cursor::new(Coordinates { x: 0, y: 0 }, &blue_board);
-                let mut attacks: Vec<Attack> = Vec::new();
+                let mut player_attacks: Vec<Attack> = Vec::new();
+                let mut enemy_attacks: Vec<Attack> = Vec::new();
                 let mut enemy_ships: Vec<Ship> = Vec::new();
                 let mut player_ships: Vec<Ship> = Vec::new();
                 let title =
@@ -842,9 +853,6 @@ fn main() {
                                 ship.render(&mut stdout);
                             }
                             tentative_ship.render(&mut stdout);
-                            for attack in attacks.iter() {
-                                attack.render(&mut stdout);
-                            }
                             stdout.flush().unwrap();
                         }
                         None => {
@@ -856,7 +864,7 @@ fn main() {
                             for ship in enemy_ships.iter() {
                                 ship.render(&mut stdout);
                             }
-                            for attack in attacks.iter() {
+                            for attack in player_attacks.iter() {
                                 attack.render(&mut stdout);
                             }
                             red_cursor.render(&mut stdout);
@@ -889,7 +897,35 @@ fn main() {
                                         AttackResults::Hit => game.increment_hits(),
                                         AttackResults::Miss => game.increment_misses(),
                                     };
-                                    attacks.push(attack);
+                                    player_attacks.push(attack);
+
+                                    // TODO: the game loop only increments when the user hits a key
+                                    // This means we can have to either
+                                    // - wait for the user to see the results of an AI action
+                                    // - perform AI action immediately after the user ta                                    
+                                    // Look into how we can decouple waiting for input from the game loop.
+
+                                    // Display: "the AI is thinking"
+                                    simulate_thought();
+                                    game = game.switch_players();
+                                    match naive_autoselect_attack_coordinates(&enemy_attacks, &blue_board) {
+                                        Some(coordinates) => {
+                                            let attack = Attack::new(
+                                                coordinates,
+                                                &blue_board,
+                                                &player_ships
+                                            );
+                                            game = match attack.result {
+                                                AttackResults::Hit => game.increment_hits(),
+                                                AttackResults::Miss => game.increment_misses()
+                                            };
+                                            enemy_attacks.push(attack);
+                                        },
+                                        None => {
+                                            // enemy couldn't attack!
+                                        }
+                                    }
+                                    game = game.switch_players();
                                 }
                                 _ => {}
                             }
@@ -907,7 +943,7 @@ fn main() {
                             for ship in player_ships.iter() {
                                 ship.render(&mut stdout);
                             }
-                            for attack in attacks.iter() {
+                            for attack in enemy_attacks.iter() {
                                 attack.render(&mut stdout);
                             }
                             red_cursor.render(&mut stdout);
@@ -1175,5 +1211,13 @@ mod tests {
         }
         let coordinates = naive_autoselect_attack_coordinates(&attacks, &board);
         assert!(coordinates.is_none());
+    }
+
+    #[test]
+    fn test_simulate_thought() {
+        let now = time::Instant::now();
+        let wait_a_sec = time::Duration::from_secs(1);
+        simulate_thought();
+        assert!(now.elapsed() >= wait_a_sec);
     }
 }
