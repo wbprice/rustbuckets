@@ -1,8 +1,11 @@
-use entities::{Coordinates}
-use systems::{Faction}
+use crate::{
+    models::{
+    Coordinates,
+    Faction
+}};
 
 #[derive(Debug, Default)]
-struct Board {
+pub struct Board {
     origin: Coordinates,
     width: u16,
     height: u16,

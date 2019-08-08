@@ -1,27 +1,11 @@
 use crate::{
-    entities::{
+    models::{
         Ship,
-        Attack
+        Attack,
+        Scores,
+        Faction
     }
 };
-
-#[derive(Debug, Default)]
-pub struct Scores {
-    hits: u16,
-    misses: u16
-}
-
-#[derive(Debug)]
-pub enum Faction {
-    Blue,
-    Red
-}
-
-impl Default for Faction {
-    fn default() -> Self {
-        Faction::Blue
-    }
-}
 
 #[derive(Debug, Default)]
 pub struct Game {

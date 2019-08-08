@@ -1,7 +1,6 @@
-mod entities;
-mod systems;
+mod models;
 
-use crate::{systems::Game};
+use models::Game;
 
 fn main() {
 
