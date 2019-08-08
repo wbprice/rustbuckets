@@ -1160,18 +1160,20 @@ mod tests {
             let coordinates = naive_autoselect_attack_coordinates(&attacks, &board).unwrap();
             attacks.push(Attack::new(coordinates, &board, &ships));
         }
-
+        let coordinates = naive_autoselect_attack_coordinates(&attacks, &board);
+        assert!(coordinates.is_some());
     }
 
     #[test]
     fn test_naive_autoselect_attack_coordinates_full_board() {
         let board = Board::new(Faction::Blue, Coordinates { x: 1, y: 2 }, 8, 8);
-        let attacks : Vec<Attack> = Vec::new();
-        let coordinates = naive_autoselect_attack_coordinates(&attacks, &board).unwrap();
-
-        assert!(coordinates.x <= 7);
-        assert!(coordinates.x >= 0);
-        assert!(coordinates.y >= 0);
-        assert!(coordinates.y <= 7);
+        let ships : Vec<Ship> = Vec::new();
+        let mut attacks : Vec<Attack> = Vec::new();
+        for _ in 0..64 {
+            let coordinates = naive_autoselect_attack_coordinates(&attacks, &board).unwrap();
+            attacks.push(Attack::new(coordinates, &board, &ships));
+        }
+        let coordinates = naive_autoselect_attack_coordinates(&attacks, &board);
+        assert!(coordinates.is_none());
     }
 }
