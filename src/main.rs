@@ -910,13 +910,13 @@ fn main() {
                                             let attack = Attack::new(
                                                 coordinates,
                                                 &blue_board,
-                                                &enemy_ships
+                                                &player_ships
                                             );
                                             game = match attack.result {
                                                 AttackResults::Hit => game.increment_hits(),
                                                 AttackResults::Miss => game.increment_misses()
                                             };
-                                            enemy_attacks.push(attack);
+                                               enemy_attacks.push(attack);
                                         },
                                         None => {
                                             // enemy couldn't attack!
