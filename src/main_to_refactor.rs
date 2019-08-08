@@ -163,7 +163,7 @@ enum Faction {
 impl Default for Faction {
     fn default() -> Self {
         Faction::Red
-    }
+   }
 }
 
 #[derive(Debug, Copy, Clone, Default)]

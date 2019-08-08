@@ -1,5 +1,6 @@
 mod game;
 
 pub use self::{
-    game::Game
+    game::Game,
+    game::Faction
 };
