@@ -16,8 +16,8 @@ use crate::{
 pub struct Game {
     pub blue_score: Scores,
     pub red_score: Scores,
-    pub blue_ships: Vec<Ship>,
-    pub red_ships: Vec<Ship>,
+    pub blue_ships: Box<[Ship]>,
+    pub red_ships: Box<[Ship]>,
     pub blue_attacks: Box<[Attack]>,
     pub red_attacks: Box<[Attack]>,
     pub active_player: Faction,
@@ -36,11 +36,11 @@ impl Game {
         self.mode = mode;
     }
 
-    pub fn place_ship(&mut self, faction: Faction, &ship: Ship) -> Result<(), &str> {
+    pub fn place_ship(&mut self, faction: Faction, ship: Ship) -> Result<(), &str> {
         return match faction {
             Faction::Blue => {
                 if self.should_place_ship(faction, ship) {
-                    self.blue_ships.push(*ship);
+                    self.blue_ships.push(ship);
                     Ok(())
                 } else {
                     Err("Can't place ship there")
@@ -48,7 +48,7 @@ impl Game {
             },
             Faction::Red => {
                 if self.should_place_ship(faction, ship) {
-                    self.red_ships.push(*ship);
+                    self.red_ships.push(ship);
                     Ok(())
                 } else {
                     Err("Can't place ship there")
@@ -57,16 +57,16 @@ impl Game {
         };
     }
 
-    fn should_place_ship(&self, faction: Faction, ship: Ship) -> bool {
+    fn should_place_ship(self, faction: Faction, ship: Ship) -> bool {
         for ship_segment in ship.segments.iter() {
-            if self.is_ship_at_coordinates(faction, ship_segment.coordinates) {
+            if self.is_ship_at_coordinates(&faction, ship_segment.coordinates) {
                 return false;
             }
         }
         true
     }
 
-    fn is_ship_at_coordinates(self, faction: Faction, coordinates: Coordinates) -> bool {
+    fn is_ship_at_coordinates(self, faction: &Faction, coordinates: Coordinates) -> bool {
         let ship_list = match faction {
             Faction::Blue => {
                 self.blue_ships

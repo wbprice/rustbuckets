@@ -1,4 +1,3 @@
-use std::ops::Deref;
 use crate::{
     models::{
         Heading,
@@ -27,7 +26,6 @@ pub struct Ship {
     pub segments: Vec<ShipSegment>
 }
 
-#[derive(Deref)]
 impl Ship {
     pub fn new(origin: Coordinates, heading: Heading, length: u16) -> Ship {
         // Create N segments in the heading of the boat.
