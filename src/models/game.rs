@@ -36,13 +36,15 @@ impl Game {
         self.mode = mode;
     }
 
-    fn place_ship(&mut self, faction: Faction, ship: Ship) {
+    fn place_ship(&mut self, faction: Faction, ship: Ship) -> Result<(), &str> {
         match faction {
             Faction::Blue => {
                 self.blue_ships.push(ship);
+                Ok(())
             },
             Faction::Red => {
                 self.red_ships.push(ship);
+                Ok(())
             }
         }
     }
@@ -69,19 +71,64 @@ mod tests {
     }
 
     #[test]
-    fn test_place_ship() {
+    fn test_place_ship_empty_board() {
+        let mut game = Game::default();
+        assert_eq!(game.blue_ships.len(), 0);
+        let result = game.place_ship(
+            Faction::Blue,
+            Ship::default()
+        );
+        assert!(result.is_ok());
+        assert_eq!(game.blue_ships.len(), 1);
+    }
+
+    #[test]
+    fn test_place_ship_should_not_share_origin() {
         let mut game = Game::default();
         assert_eq!(game.blue_ships.len(), 0);
         game.place_ship(
             Faction::Blue,
-            Ship::new(
-                Coordinates {
-                    x: 0,
-                    y: 0
-                },
-                Heading::South
-            )
+            Ship::default()
+        ).unwrap();
+        assert_eq!(game.blue_ships.len(), 1);
+        let result = game.place_ship(
+            Faction::Blue,
+            Ship::default()
         );
+        assert!(result.is_err());
+        assert_eq!(game.blue_ships.len(), 1);
+    }
+
+    #[test]
+    fn test_ships_should_not_go_off_board() {
+        let mut game = Game::default();
         assert_eq!(game.blue_ships.len(), 0);
+        game.place_ship(
+            Faction::Blue,
+            Ship::default()
+        ).unwrap();
+        assert_eq!(game.blue_ships.len(), 1);
+        let result = game.place_ship(
+            Faction::Blue,
+            Ship::default()
+        );
+        assert!(result.is_err());
+        assert_eq!(game.blue_ships.len(), 1);
+    }
+
+    fn test_ships_should_not_overlap_with_other_ships() {
+        let mut game = Game::default();
+        assert_eq!(game.blue_ships.len(), 0);
+        game.place_ship(
+            Faction::Blue,
+            Ship::default()
+        ).unwrap();
+        assert_eq!(game.blue_ships.len(), 1);
+        let result = game.place_ship(
+            Faction::Blue,
+            Ship::default()
+        );
+        assert!(result.is_err());
+        assert_eq!(game.blue_ships.len(), 1);
     }
 }
