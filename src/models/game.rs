@@ -25,28 +25,66 @@ pub struct Game {
 }
 
 impl Game {
-    fn toggle_active_player(&mut self) {
+    pub fn toggle_active_player(&mut self) {
         self.active_player = match self.active_player {
             Faction::Blue => Faction::Red,
             Faction::Red => Faction::Blue
         }
     }
 
-    fn switch_mode(&mut self, mode: Mode) {
+    pub fn switch_mode(&mut self, mode: Mode) {
         self.mode = mode;
     }
 
-    fn place_ship(&mut self, faction: Faction, ship: Ship) -> Result<(), &str> {
-        match faction {
+    pub fn place_ship(&mut self, faction: Faction, &ship: Ship) -> Result<(), &str> {
+        return match faction {
             Faction::Blue => {
-                self.blue_ships.push(ship);
-                Ok(())
+                if self.should_place_ship(faction, ship) {
+                    self.blue_ships.push(*ship);
+                    Ok(())
+                } else {
+                    Err("Can't place ship there")
+                }
             },
             Faction::Red => {
-                self.red_ships.push(ship);
-                Ok(())
+                if self.should_place_ship(faction, ship) {
+                    self.red_ships.push(*ship);
+                    Ok(())
+                } else {
+                    Err("Can't place ship there")
+                }
+            }
+        };
+    }
+
+    fn should_place_ship(&self, faction: Faction, ship: Ship) -> bool {
+        for ship_segment in ship.segments.iter() {
+            if self.is_ship_at_coordinates(faction, ship_segment.coordinates) {
+                return false;
             }
         }
+        true
+    }
+
+    fn is_ship_at_coordinates(self, faction: Faction, coordinates: Coordinates) -> bool {
+        let ship_list = match faction {
+            Faction::Blue => {
+                self.blue_ships
+            },
+            Faction::Red => {
+                self.red_ships
+            }
+        };
+
+        for ship in ship_list.iter() {
+            for ship_segment in ship.segments.iter() {
+                if ship_segment.coordinates.x == coordinates.x &&
+                   ship_segment.coordinates.y == coordinates.y {
+                       return true
+                   }
+            }
+        }
+        false
     }
 }
 
