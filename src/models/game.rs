@@ -16,8 +16,8 @@ use crate::{
 pub struct Game {
     pub blue_score: Scores,
     pub red_score: Scores,
-    pub blue_ships: Box<[Ship]>,
-    pub red_ships: Box<[Ship]>,
+    pub blue_ships: Vec<Ship>,
+    pub red_ships: Vec<Ship>,
     pub blue_attacks: Box<[Attack]>,
     pub red_attacks: Box<[Attack]>,
     pub active_player: Faction,
@@ -36,47 +36,49 @@ impl Game {
         self.mode = mode;
     }
 
-    pub fn place_ship(&mut self, faction: Faction, ship: Ship) -> Result<(), &str> {
-        return match faction {
-            Faction::Blue => {
-                if self.should_place_ship(faction, ship) {
-                    self.blue_ships.push(ship);
-                    Ok(())
-                } else {
-                    Err("Can't place ship there")
-                }
-            },
-            Faction::Red => {
-                if self.should_place_ship(faction, ship) {
-                    self.red_ships.push(ship);
-                    Ok(())
-                } else {
-                    Err("Can't place ship there")
-                }
-            }
-        };
+    fn get_ship_list(&self, faction: Faction) -> &Vec<Ship> {
+        match faction {
+            Faction::Red => &self.red_ships,
+            Faction::Blue => &self.blue_ships 
+        }
     }
 
-    fn should_place_ship(self, faction: Faction, ship: Ship) -> bool {
+    fn get_ship_list_mut(&mut self, faction: Faction) -> &Vec<Ship> {
+        match faction {
+            Faction::Red => &self.red_ships,
+            Faction::Blue => &self.blue_ships 
+        }
+    }
+
+    pub fn place_ship(&mut self, faction: Faction, ship: Ship) -> Result<(), &str> {
+        let ship_list = self.get_ship_list_mut(faction);
+        // if self.should_place_ship(&ship_list, &ship) {
+            // self.blue_ships.push(ship);
+            Ok(())
+        // } else {
+            // Err("Can't place ship there")
+        // }
+    }
+
+    pub fn kiss_ling_ling(&self) {
+        println!("{}{}{}", 
+            "\u{1F436}",
+            "\u{1F48B}", 
+            "\u{1F407}", 
+        );
+    }
+
+    fn should_place_ship(&self, ships: &Vec<Ship>, ship: &Ship) -> bool {
         for ship_segment in ship.segments.iter() {
-            if self.is_ship_at_coordinates(&faction, ship_segment.coordinates) {
+            if self.is_ship_at_coordinates(&ships, &ship_segment.coordinates) {
                 return false;
             }
         }
         true
     }
 
-    fn is_ship_at_coordinates(self, faction: &Faction, coordinates: Coordinates) -> bool {
-        let ship_list = match faction {
-            Faction::Blue => {
-                self.blue_ships
-            },
-            Faction::Red => {
-                self.red_ships
-            }
-        };
-
-        for ship in ship_list.iter() {
+    fn is_ship_at_coordinates(&self, ships: &Vec<Ship>, coordinates: &Coordinates) -> bool {
+        for ship in ships.iter() {
             for ship_segment in ship.segments.iter() {
                 if ship_segment.coordinates.x == coordinates.x &&
                    ship_segment.coordinates.y == coordinates.y {
@@ -168,5 +170,11 @@ mod tests {
         );
         assert!(result.is_err());
         assert_eq!(game.blue_ships.len(), 1);
+    }
+
+    #[test]
+    fn test_kiss_ling_ling() {
+        let mut game = Game::default();
+        game.kiss_ling_ling();
     }
 }
