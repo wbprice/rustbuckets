@@ -18,7 +18,7 @@ impl ShipSegment {
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct Ship {
     pub origin: Coordinates,
     pub heading: Heading,
@@ -51,6 +51,13 @@ impl Ship {
         }
     }
 
+    pub fn default() -> Ship {
+        Ship::new(
+            Coordinates::default(),
+            Heading::default(),
+            2
+        )
+    }
 }
 
 impl Clone for Ship {

@@ -36,28 +36,25 @@ impl Game {
         self.mode = mode;
     }
 
-    fn get_ship_list(&self, faction: Faction) -> &Vec<Ship> {
-        match faction {
-            Faction::Red => &self.red_ships,
-            Faction::Blue => &self.blue_ships 
-        }
-    }
-
-    fn get_ship_list_mut(&mut self, faction: Faction) -> &Vec<Ship> {
-        match faction {
-            Faction::Red => &self.red_ships,
-            Faction::Blue => &self.blue_ships 
-        }
-    }
-
     pub fn place_ship(&mut self, faction: Faction, ship: Ship) -> Result<(), &str> {
-        let ship_list = self.get_ship_list_mut(faction);
-        // if self.should_place_ship(&ship_list, &ship) {
-            // self.blue_ships.push(ship);
-            Ok(())
-        // } else {
-            // Err("Can't place ship there")
-        // }
+        match faction {
+            Faction::Red => {
+                if self.should_place_ship(&self.red_ships, &ship) {
+                    self.red_ships.push(ship);
+                    Ok(())
+                } else {
+                    Err("Can't place a ship there")
+                }
+            }
+            Faction::Blue => {
+                if self.should_place_ship(&self.blue_ships, &ship) {
+                    self.blue_ships.push(ship);
+                    Ok(())
+                } else {
+                    Err("Can't place a ship there")
+                }
+            }
+        }
     }
 
     pub fn kiss_ling_ling(&self) {
@@ -71,7 +68,7 @@ impl Game {
     fn should_place_ship(&self, ships: &Vec<Ship>, ship: &Ship) -> bool {
         for ship_segment in ship.segments.iter() {
             if self.is_ship_at_coordinates(&ships, &ship_segment.coordinates) {
-                return false;
+                return false
             }
         }
         true
@@ -156,6 +153,7 @@ mod tests {
         assert_eq!(game.blue_ships.len(), 1);
     }
 
+    #[test]
     fn test_ships_should_not_overlap_with_other_ships() {
         let mut game = Game::default();
         assert_eq!(game.blue_ships.len(), 0);
@@ -174,7 +172,9 @@ mod tests {
 
     #[test]
     fn test_kiss_ling_ling() {
-        let mut game = Game::default();
+        let game = Game::default();
         game.kiss_ling_ling();
+        let love = true;
+        assert!(love);
     }
 }
