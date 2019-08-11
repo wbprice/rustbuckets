@@ -18,8 +18,8 @@ pub struct Game {
     pub red_score: Scores,
     pub blue_ships: Vec<Ship>,
     pub red_ships: Vec<Ship>,
-    pub blue_attacks: Box<[Attack]>,
-    pub red_attacks: Box<[Attack]>,
+    pub blue_attacks: Vec<Attack>,
+    pub red_attacks: Vec<Attack>,
     pub active_player: Faction,
     pub mode: Mode
 }
@@ -52,6 +52,43 @@ impl Game {
                     Ok(())
                 } else {
                     Err("Can't place a ship there")
+                }
+            }
+        }
+    }
+
+    fn should_place_attack(self, attacks: &Vec<Attack>, coordinates: &Coordinates) -> bool {
+        for attack in attacks.iter() {
+            if attack.coordinates.x == coordinates.x &&
+               attack.coordinates.y == coordinates.y {
+                   return false;
+               }
+        }
+        return true
+    }
+
+    pub fn place_attack(&mut self, faction: Faction, coordinates: Coordinates) -> Result<(), &str> {
+        match faction {
+            Faction::Red => {
+                if self.should_place_attack(&self.red_attacks, &coordinates) {
+                    self.red_attacks.push(Attack::new(
+                        &coordinates,
+                        &self.blue_ships
+                    ));
+                    Ok(())
+                } else {
+                    Err("Can't place an attac there")
+                }
+            },
+            Faction::Blue => {
+                if self.should_place_attack(&self.blue_attacks, &coordinates) {
+                    self.blue_attacks.push(Attack::new(
+                        &self.red_ships,
+                        &coordinates
+                    ));
+                    Ok(())
+                } else {
+                    Err("Can't place an attac there")
                 }
             }
         }

@@ -1,5 +1,6 @@
 use crate::{
     models::{
+        Ship,
         Coordinates,
         AttackResult
     }
@@ -7,6 +8,12 @@ use crate::{
 
 #[derive(Debug)]
 pub struct Attack {
-    coordinates: Coordinates,
+    pub coordinates: Coordinates,
     result: AttackResult
+}
+
+impl Attack {
+    fn new(self, ships: &Vec<Ship>, coordinates: &Coordinates) {
+        
+    }
 }
