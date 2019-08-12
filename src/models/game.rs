@@ -229,12 +229,48 @@ mod tests {
 
     #[test]
     fn test_new_attack_miss() {
-
+        let mut game = Game::default();
+        game.place_ship(
+            Faction::Blue,
+            Ship::default()
+        ).unwrap();
+        assert_eq!(game.blue_ships.len(), 1);
+        game.place_attack(
+            Faction::Blue,
+            Coordinates {
+                x: 2,
+                y: 2
+            }
+        ).unwrap();
+        assert_eq!(game.blue_attacks.len(), 1);
+        assert_eq!(game.blue_attacks[0].result, AttackResult::Miss);
     }
 
     #[test]
     fn test_new_attack_already_made() {
-
+        let mut game = Game::default();
+        game.place_ship(
+            Faction::Blue,
+            Ship::default()
+        ).unwrap();
+        assert_eq!(game.blue_ships.len(), 1);
+        game.place_attack(
+            Faction::Blue,
+            Coordinates {
+                x: 0,
+                y: 0
+            }
+        ).unwrap();
+        let result = game.place_attack(
+            Faction::Blue,
+            Coordinates {
+                x: 0,
+                y: 0
+            }
+        );
+        assert!(result.is_err());
+        assert_eq!(game.blue_attacks.len(), 1);
+        assert_eq!(game.blue_attacks[0].result, AttackResult::Hit);
     }
 
     #[test]
