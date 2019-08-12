@@ -72,24 +72,24 @@ impl Game {
         match faction {
             Faction::Red => {
                 if self.should_place_attack(&self.red_attacks, &coordinates) {
-                    self.red_attacks.push(Attack::new(
+                    self.blue_attacks.push(Attack::new(
                         &self.blue_ships,
                         coordinates
                     ));
                     Ok(())
                 } else {
-                    Err("Can't place an attac there")
+                    Err("Can't place an attack there")
                 }
             },
             Faction::Blue => {
                 if self.should_place_attack(&self.blue_attacks, &coordinates) {
                     self.blue_attacks.push(Attack::new(
-                        &self.red_ships,
+                        &self.blue_ships,
                         coordinates
                     ));
                     Ok(())
                 } else {
-                    Err("Can't place an attac there")
+                    Err("Can't place an attack there")
                 }
             }
         }
@@ -216,7 +216,7 @@ mod tests {
             Ship::default()
         ).unwrap();
         assert_eq!(game.blue_ships.len(), 1);
-        let result = game.place_attack(
+        game.place_attack(
             Faction::Blue,
             Coordinates {
                 x: 0,
