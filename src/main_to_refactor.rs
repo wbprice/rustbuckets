@@ -902,7 +902,7 @@ fn main() {
                                     // TODO: the game loop only increments when the user hits a key
                                     // This means we can have to either
                                     // - wait for the user to see the results of an AI action
-                                    // - perform AI action immediately after the user ta                                    
+                                    // - perform AI action immediately after the user ta
                                     // Look into how we can decouple waiting for input from the game loop.
 
                                     // Display: "the AI is thinking"

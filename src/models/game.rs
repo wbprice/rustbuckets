@@ -12,8 +12,11 @@ use crate::{
         Mode
     }
 };
+use rand::{
+    thread_rng, Rng
+};
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct Game {
     pub blue_score: Scores,
     pub red_score: Scores,
@@ -22,10 +25,28 @@ pub struct Game {
     pub blue_attacks: Vec<Attack>,
     pub red_attacks: Vec<Attack>,
     pub active_player: Faction,
-    pub mode: Mode
+    pub mode: Mode,
+    width: u16,
+    height: u16
 }
 
 impl Game {
+
+    pub fn default() -> Game {
+        Game {
+            blue_score: Scores::default(),
+            red_score: Scores::default(),
+            blue_ships: vec![],
+            red_ships: vec![],
+            blue_attacks: vec![],
+            red_attacks: vec![],
+            active_player: Faction::default(),
+            mode: Mode::default(),
+            width: 8,
+            height: 8
+        }
+    }
+
     pub fn toggle_active_player(&mut self) {
         self.active_player = match self.active_player {
             Faction::Blue => Faction::Red,
@@ -76,6 +97,47 @@ impl Game {
                 } else {
                     Err("Can't place a ship there")
                 }
+            }
+        }
+    }
+
+    fn auto_select_origin(&self) -> Result<Coordinates, &str> {
+        for _ in 0..self.width * self.height {
+            let mut rng = thread_rng();
+            let origin = Coordinates {
+                x: rng.gen_range(0, self.width),
+                y: rng.gen_range(0, self.height)
+            };
+
+            match self.active_player {
+                Faction::Red => {
+                    if !self.is_ship_at_coordinates(&self.red_ships, &origin) {
+                        return Ok(origin)
+                    }
+                },
+                Faction::Blue => {
+                    if !self.is_ship_at_coordinates(&self.blue_ships, &origin) {
+                        return Ok(origin)
+                    }
+                }
+            }
+        }
+        Err("No legal origin!")
+    }
+
+    fn auto_select_heading(&self, origin: Coordinates, length: u16) -> Result<Heading, &str> {
+
+    }
+
+    pub fn autocreate_ship(&self, length: u16) -> Result<Ship, &str> {
+        loop {
+            // Create an origin
+            // Any origin that is on the board and isn't occupied is legal.
+            let origin = self.auto_select_origin();
+            if origin.is_ok() {
+
+                let heading = self.auto_select_heading();
+
             }
         }
     }
@@ -259,6 +321,23 @@ mod tests {
         let result = game.place_attack(Coordinates { x: 0, y: 0});
         assert!(result.is_err());
         assert_eq!(game.blue_attacks.len(), 1);
+    }
+
+    #[test]
+    fn test_autocreate_ship_empty_board() {
+        let mut game = Game::default();
+        let ships : Vec<Ship> = vec![];
+        let ship = game.autocreate_ship(2);
+    }
+
+    #[test]
+    fn test_auto_select_origin_empty_board() {
+        let mut game = Game::default();
+        let origin = game.auto_select_origin().unwrap();
+        assert!(origin.x >= 0);
+        assert!(origin.x <= 7);
+        assert!(origin.y >= 0);
+        assert!(origin.y <= 7);
     }
 
     #[test]
