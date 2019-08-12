@@ -4,6 +4,7 @@ use crate::{
         Coordinates,
         Heading,
         Attack,
+        AttackResult,
         Scores,
         Faction
     },
@@ -57,7 +58,7 @@ impl Game {
         }
     }
 
-    fn should_place_attack(self, attacks: &Vec<Attack>, coordinates: &Coordinates) -> bool {
+    fn should_place_attack(&self, attacks: &Vec<Attack>, coordinates: &Coordinates) -> bool {
         for attack in attacks.iter() {
             if attack.coordinates.x == coordinates.x &&
                attack.coordinates.y == coordinates.y {
@@ -72,8 +73,8 @@ impl Game {
             Faction::Red => {
                 if self.should_place_attack(&self.red_attacks, &coordinates) {
                     self.red_attacks.push(Attack::new(
-                        &coordinates,
-                        &self.blue_ships
+                        &self.blue_ships,
+                        coordinates
                     ));
                     Ok(())
                 } else {
@@ -84,7 +85,7 @@ impl Game {
                 if self.should_place_attack(&self.blue_attacks, &coordinates) {
                     self.blue_attacks.push(Attack::new(
                         &self.red_ships,
-                        &coordinates
+                        coordinates
                     ));
                     Ok(())
                 } else {
@@ -95,10 +96,10 @@ impl Game {
     }
 
     pub fn kiss_ling_ling(&self) {
-        println!("{}{}{}", 
+        println!("{}{}{}",
             "\u{1F436}",
-            "\u{1F48B}", 
-            "\u{1F407}", 
+            "\u{1F48B}",
+            "\u{1F407}",
         );
     }
 
@@ -205,6 +206,35 @@ mod tests {
         );
         assert!(result.is_err());
         assert_eq!(game.blue_ships.len(), 1);
+    }
+
+    #[test]
+    fn test_new_attack_hit() {
+        let mut game = Game::default();
+        game.place_ship(
+            Faction::Blue,
+            Ship::default()
+        ).unwrap();
+        assert_eq!(game.blue_ships.len(), 1);
+        let result = game.place_attack(
+            Faction::Blue,
+            Coordinates {
+                x: 0,
+                y: 0
+            }
+        ).unwrap();
+        assert_eq!(game.blue_attacks.len(), 1);
+        assert_eq!(game.blue_attacks[0].result, AttackResult::Hit);
+    }
+
+    #[test]
+    fn test_new_attack_miss() {
+
+    }
+
+    #[test]
+    fn test_new_attack_already_made() {
+
     }
 
     #[test]
