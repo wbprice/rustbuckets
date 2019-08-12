@@ -13,7 +13,7 @@ use crate::{
     }
 };
 use rand::{
-    thread_rng, Rng
+    thread_rng, Rng, random
 };
 
 #[derive(Debug)]
@@ -26,13 +26,12 @@ pub struct Game {
     pub red_attacks: Vec<Attack>,
     pub active_player: Faction,
     pub mode: Mode,
-    width: u16,
-    height: u16
+    pub width: u16,
+    pub height: u16
 }
 
-impl Game {
-
-    pub fn default() -> Game {
+impl Default for Game {
+    fn default() -> Self {
         Game {
             blue_score: Scores::default(),
             red_score: Scores::default(),
@@ -46,7 +45,9 @@ impl Game {
             height: 8
         }
     }
+}
 
+impl Game {
     pub fn toggle_active_player(&mut self) {
         self.active_player = match self.active_player {
             Faction::Blue => Faction::Red,
@@ -126,20 +127,53 @@ impl Game {
     }
 
     fn auto_select_heading(&self, origin: Coordinates, length: u16) -> Result<Heading, &str> {
-
+        match self.active_player {
+            Faction::Red => {
+                let heading = random();
+                let tentative_ship = Ship::new(origin, heading, length);
+                if self.should_place_ship(&self.red_ships, &tentative_ship) {
+                    return Ok(heading)
+                } else {
+                    let heading = heading.flip();
+                    let tentative_ship = Ship::new(origin, heading, length);
+                    if self.should_place_ship(&self.red_ships, &tentative_ship) {
+                        return Ok(heading)
+                    } else {
+                        return Err("Couldn't find a good heading")
+                    }
+                }
+            },
+            Faction::Blue => {
+                let heading = random();
+                let tentative_ship = Ship::new(origin, heading, length);
+                if self.should_place_ship(&self.blue_ships, &tentative_ship) {
+                    return Ok(heading)
+                } else {
+                    let heading = heading.flip();
+                    let tentative_ship = Ship::new(origin, heading, length);
+                    if self.should_place_ship(&self.blue_ships, &tentative_ship) {
+                        return Ok(heading)
+                    } else {
+                        return Err("Couldn't find a good heading")
+                    }
+                }
+            }
+        }
     }
 
-    pub fn autocreate_ship(&self, length: u16) -> Result<Ship, &str> {
-        loop {
+    pub fn auto_create_ship(&self, length: u16) -> Result<Ship, &str> {
+        for _ in 0..self.width * self.height {
             // Create an origin
             // Any origin that is on the board and isn't occupied is legal.
             let origin = self.auto_select_origin();
             if origin.is_ok() {
-
-                let heading = self.auto_select_heading();
-
+                let heading = self.auto_select_heading(origin.unwrap(), length);
+                if heading.is_ok() {
+                    return Ok(Ship::new(origin.unwrap(), heading.unwrap(), length))
+                }
             }
         }
+        Err("Couldn't place a ship anywhere")
     }
 
     fn should_place_attack(&self, attacks: &Vec<Attack>, coordinates: &Coordinates) -> bool {
@@ -211,6 +245,18 @@ impl Game {
                 return false
             }
         }
+        match ship.heading {
+            Heading::East => {
+                if self.width - ship.origin.x < ship.length {
+                    return false
+                }
+            },
+            Heading::South => {
+                if self.height - ship.origin.y < ship.length {
+                    return false
+                }
+            }
+        }
         true
     }
 
@@ -271,11 +317,8 @@ mod tests {
     fn test_ships_should_not_go_off_board() {
         let mut game = Game::default();
         assert_eq!(game.blue_ships.len(), 0);
-        game.place_ship(Ship::default()).unwrap();
-        assert_eq!(game.blue_ships.len(), 1);
-        let result = game.place_ship(Ship::default());
+        let result = game.place_ship(Ship::new(Coordinates { x: 7, y: 0}, Heading::East, 2));
         assert!(result.is_err());
-        assert_eq!(game.blue_ships.len(), 1);
     }
 
     #[test]
@@ -324,13 +367,6 @@ mod tests {
     }
 
     #[test]
-    fn test_autocreate_ship_empty_board() {
-        let mut game = Game::default();
-        let ships : Vec<Ship> = vec![];
-        let ship = game.autocreate_ship(2);
-    }
-
-    #[test]
     fn test_auto_select_origin_empty_board() {
         let mut game = Game::default();
         let origin = game.auto_select_origin().unwrap();
@@ -338,6 +374,31 @@ mod tests {
         assert!(origin.x <= 7);
         assert!(origin.y >= 0);
         assert!(origin.y <= 7);
+    }
+
+    #[test]
+    fn test_auto_select_heading_empty_board() {
+        let mut game = Game::default();
+        let origin = game.auto_select_origin().unwrap();
+        let heading = game.auto_select_heading(origin, 2);
+        assert!(heading.is_ok());
+    }
+
+    #[test]
+    fn test_auto_create_ship() {
+        let mut game = Game::default();
+        let ship = game.auto_create_ship(2);
+        assert!(ship.is_ok());
+    }
+
+    #[test]
+    fn test_auto_create_5_ships() {
+        let mut game = Game::default();
+        for length in vec![2, 2, 3, 4, 5] {
+            let ship = game.auto_create_ship(length).expect("Should have been able to create the ship");
+            game.place_ship(ship).expect("Should have been able to place ship");
+        }
+        assert_eq!(game.blue_ships.len(), 5);
     }
 
     #[test]
