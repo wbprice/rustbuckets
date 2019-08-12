@@ -1,5 +1,5 @@
 #[derive(Debug, Default)]
 pub struct Scores {
-    hits: u16,
-    misses: u16
+    pub hits: u16,
+    pub misses: u16
 }

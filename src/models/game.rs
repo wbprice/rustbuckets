@@ -37,8 +37,30 @@ impl Game {
         self.mode = mode;
     }
 
-    pub fn place_ship(&mut self, faction: Faction, ship: Ship) -> Result<(), &str> {
-        match faction {
+    fn increment_hits(&mut self) {
+        match self.active_player {
+            Faction::Blue => {
+                self.blue_score.hits += 1;
+            },
+            Faction::Red => {
+                self.red_score.hits += 1;
+            }
+        }
+    }
+
+    fn increment_misses(&mut self) {
+        match self.active_player {
+            Faction::Blue => {
+                self.blue_score.misses += 1;
+            },
+            Faction::Red => {
+                self.red_score.misses += 1;
+            }
+        }
+    }
+
+    pub fn place_ship(&mut self, ship: Ship) -> Result<(), &str> {
+        match self.active_player {
             Faction::Red => {
                 if self.should_place_ship(&self.red_ships, &ship) {
                     self.red_ships.push(ship);
@@ -68,25 +90,43 @@ impl Game {
         return true
     }
 
-    pub fn place_attack(&mut self, faction: Faction, coordinates: Coordinates) -> Result<(), &str> {
-        match faction {
+    pub fn place_attack(&mut self, coordinates: Coordinates) -> Result<(), &str> {
+        match self.active_player {
             Faction::Red => {
-                if self.should_place_attack(&self.red_attacks, &coordinates) {
-                    self.blue_attacks.push(Attack::new(
+                if self.should_place_attack(&self.blue_attacks, &coordinates) {
+                    let attack = Attack::new(
                         &self.blue_ships,
                         coordinates
-                    ));
+                    );
+                    match attack.result {
+                        AttackResult::Hit => {
+                            self.increment_hits();
+                        },
+                        AttackResult::Miss => {
+                            self.increment_misses();
+                        }
+                    };
+                    self.blue_attacks.push(attack);
                     Ok(())
                 } else {
                     Err("Can't place an attack there")
                 }
             },
             Faction::Blue => {
-                if self.should_place_attack(&self.blue_attacks, &coordinates) {
-                    self.blue_attacks.push(Attack::new(
-                        &self.blue_ships,
+                if self.should_place_attack(&self.red_attacks, &coordinates) {
+                    let attack = Attack::new(
+                        &self.red_ships,
                         coordinates
-                    ));
+                    );
+                    match attack.result {
+                        AttackResult::Hit => {
+                            self.increment_hits();
+                        },
+                        AttackResult::Miss => {
+                            self.increment_misses();
+                        }
+                    };
+                    self.red_attacks.push(attack);
                     Ok(())
                 } else {
                     Err("Can't place an attack there")
@@ -149,10 +189,7 @@ mod tests {
     fn test_place_ship_empty_board() {
         let mut game = Game::default();
         assert_eq!(game.blue_ships.len(), 0);
-        let result = game.place_ship(
-            Faction::Blue,
-            Ship::default()
-        );
+        let result = game.place_ship(Ship::default());
         assert!(result.is_ok());
         assert_eq!(game.blue_ships.len(), 1);
     }
@@ -161,15 +198,9 @@ mod tests {
     fn test_place_ship_should_not_share_origin() {
         let mut game = Game::default();
         assert_eq!(game.blue_ships.len(), 0);
-        game.place_ship(
-            Faction::Blue,
-            Ship::default()
-        ).unwrap();
+        game.place_ship(Ship::default()).unwrap();
         assert_eq!(game.blue_ships.len(), 1);
-        let result = game.place_ship(
-            Faction::Blue,
-            Ship::default()
-        );
+        let result = game.place_ship(Ship::default());
         assert!(result.is_err());
         assert_eq!(game.blue_ships.len(), 1);
     }
@@ -178,15 +209,9 @@ mod tests {
     fn test_ships_should_not_go_off_board() {
         let mut game = Game::default();
         assert_eq!(game.blue_ships.len(), 0);
-        game.place_ship(
-            Faction::Blue,
-            Ship::default()
-        ).unwrap();
+        game.place_ship(Ship::default()).unwrap();
         assert_eq!(game.blue_ships.len(), 1);
-        let result = game.place_ship(
-            Faction::Blue,
-            Ship::default()
-        );
+        let result = game.place_ship(Ship::default());
         assert!(result.is_err());
         assert_eq!(game.blue_ships.len(), 1);
     }
@@ -195,15 +220,9 @@ mod tests {
     fn test_ships_should_not_overlap_with_other_ships() {
         let mut game = Game::default();
         assert_eq!(game.blue_ships.len(), 0);
-        game.place_ship(
-            Faction::Blue,
-            Ship::default()
-        ).unwrap();
+        game.place_ship(Ship::default()).unwrap();
         assert_eq!(game.blue_ships.len(), 1);
-        let result = game.place_ship(
-            Faction::Blue,
-            Ship::default()
-        );
+        let result = game.place_ship(Ship::default());
         assert!(result.is_err());
         assert_eq!(game.blue_ships.len(), 1);
     }
@@ -211,18 +230,10 @@ mod tests {
     #[test]
     fn test_new_attack_hit() {
         let mut game = Game::default();
-        game.place_ship(
-            Faction::Blue,
-            Ship::default()
-        ).unwrap();
+        game.place_ship(Ship::default()).unwrap();
         assert_eq!(game.blue_ships.len(), 1);
-        game.place_attack(
-            Faction::Blue,
-            Coordinates {
-                x: 0,
-                y: 0
-            }
-        ).unwrap();
+        game.toggle_active_player();
+        game.place_attack(Coordinates { x: 0, y: 0 }).unwrap();
         assert_eq!(game.blue_attacks.len(), 1);
         assert_eq!(game.blue_attacks[0].result, AttackResult::Hit);
     }
@@ -230,18 +241,10 @@ mod tests {
     #[test]
     fn test_new_attack_miss() {
         let mut game = Game::default();
-        game.place_ship(
-            Faction::Blue,
-            Ship::default()
-        ).unwrap();
+        game.place_ship(Ship::default()).unwrap();
         assert_eq!(game.blue_ships.len(), 1);
-        game.place_attack(
-            Faction::Blue,
-            Coordinates {
-                x: 2,
-                y: 2
-            }
-        ).unwrap();
+        game.toggle_active_player();
+        game.place_attack(Coordinates { x: 2, y: 2 }).unwrap();
         assert_eq!(game.blue_attacks.len(), 1);
         assert_eq!(game.blue_attacks[0].result, AttackResult::Miss);
     }
@@ -249,28 +252,13 @@ mod tests {
     #[test]
     fn test_new_attack_already_made() {
         let mut game = Game::default();
-        game.place_ship(
-            Faction::Blue,
-            Ship::default()
-        ).unwrap();
+        game.place_ship(Ship::default()).unwrap();
         assert_eq!(game.blue_ships.len(), 1);
-        game.place_attack(
-            Faction::Blue,
-            Coordinates {
-                x: 0,
-                y: 0
-            }
-        ).unwrap();
-        let result = game.place_attack(
-            Faction::Blue,
-            Coordinates {
-                x: 0,
-                y: 0
-            }
-        );
+        game.toggle_active_player();
+        game.place_attack(Coordinates { x: 0, y: 0 }).unwrap();
+        let result = game.place_attack(Coordinates { x: 0, y: 0});
         assert!(result.is_err());
         assert_eq!(game.blue_attacks.len(), 1);
-        assert_eq!(game.blue_attacks[0].result, AttackResult::Hit);
     }
 
     #[test]
