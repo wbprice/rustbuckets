@@ -1,7 +1,7 @@
 #[derive(Debug, PartialEq)]
 pub enum Faction {
     Blue,
-    Red
+    Red,
 }
 
 impl Default for Faction {

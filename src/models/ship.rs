@@ -1,20 +1,13 @@
-use crate::{
-    models::{
-        Heading,
-        Coordinates
-    }
-};
+use crate::models::{Coordinates, Heading};
 
 #[derive(Debug, Default, Copy, Clone)]
 pub struct ShipSegment {
-    pub coordinates: Coordinates
+    pub coordinates: Coordinates,
 }
 
 impl ShipSegment {
     fn new(coordinates: Coordinates) -> ShipSegment {
-        ShipSegment {
-            coordinates
-        }
+        ShipSegment { coordinates }
     }
 }
 
@@ -23,13 +16,13 @@ pub struct Ship {
     pub origin: Coordinates,
     pub heading: Heading,
     pub length: u16,
-    pub segments: Vec<ShipSegment>
+    pub segments: Vec<ShipSegment>,
 }
 
 impl Ship {
     pub fn new(origin: Coordinates, heading: Heading, length: u16) -> Ship {
         // Create N segments in the heading of the boat.
-        let mut segments : Vec<ShipSegment> = vec![];
+        let mut segments: Vec<ShipSegment> = vec![];
         for n in 0..length {
             match heading {
                 Heading::East => segments.push(ShipSegment::new(Coordinates {
@@ -47,16 +40,12 @@ impl Ship {
             origin,
             heading,
             length,
-            segments
+            segments,
         }
     }
 
     pub fn default() -> Ship {
-        Ship::new(
-            Coordinates::default(),
-            Heading::default(),
-            2
-        )
+        Ship::new(Coordinates::default(), Heading::default(), 2)
     }
 }
 
@@ -66,7 +55,7 @@ impl Clone for Ship {
             origin: self.origin,
             heading: self.heading,
             length: self.length,
-            segments: self.segments.clone()
+            segments: self.segments.clone(),
         }
     }
 }
@@ -77,11 +66,7 @@ mod test {
 
     #[test]
     fn test_new_ship() {
-        let ship = Ship::new(
-            Coordinates {x: 0, y: 0},
-            Heading::East,
-            2
-        );
+        let ship = Ship::new(Coordinates { x: 0, y: 0 }, Heading::East, 2);
 
         assert_eq!(ship.origin.x, 0);
         assert_eq!(ship.origin.y, 0);
@@ -94,7 +79,7 @@ mod test {
 
     #[test]
     fn test_new_ship_segment() {
-        let ship_segment = ShipSegment::new(Coordinates {x: 0, y:0});
+        let ship_segment = ShipSegment::new(Coordinates { x: 0, y: 0 });
         assert_eq!(ship_segment.coordinates.x, 0);
         assert_eq!(ship_segment.coordinates.y, 0);
     }

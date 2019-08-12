@@ -1,5 +1,3 @@
 mod mode;
 
-pub use self::{
-    mode::Mode
-};
+pub use self::mode::Mode;

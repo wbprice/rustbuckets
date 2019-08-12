@@ -1,18 +1,19 @@
 use rand::{
-    distributions::{Distribution, Standard}, Rng
+    distributions::{Distribution, Standard},
+    Rng,
 };
 
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub enum Heading {
     East,
-    South
+    South,
 }
 
 impl Heading {
     pub fn flip(&self) -> Heading {
         match self {
             Heading::East => Heading::South,
-            Heading::South => Heading::East
+            Heading::South => Heading::East,
         }
     }
 }
@@ -28,7 +29,7 @@ impl Distribution<Heading> for Standard {
         match rng.gen_range(0, 1) {
             0 => Heading::East,
             1 => Heading::South,
-            _ => Heading::South
+            _ => Heading::South,
         }
     }
 }

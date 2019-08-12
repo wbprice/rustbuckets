@@ -1,20 +1,8 @@
 use crate::{
-    models::{
-        Ship,
-        Coordinates,
-        Heading,
-        Attack,
-        AttackResult,
-        Scores,
-        Faction
-    },
-    controllers::{
-        Mode
-    }
+    controllers::Mode,
+    models::{Attack, AttackResult, Coordinates, Faction, Heading, Scores, Ship},
 };
-use rand::{
-    thread_rng, Rng, random
-};
+use rand::{random, thread_rng, Rng};
 
 #[derive(Debug)]
 pub struct Game {
@@ -27,7 +15,7 @@ pub struct Game {
     pub active_player: Faction,
     pub mode: Mode,
     pub width: u16,
-    pub height: u16
+    pub height: u16,
 }
 
 impl Default for Game {
@@ -42,7 +30,7 @@ impl Default for Game {
             active_player: Faction::default(),
             mode: Mode::default(),
             width: 8,
-            height: 8
+            height: 8,
         }
     }
 }
@@ -51,7 +39,7 @@ impl Game {
     pub fn toggle_active_player(&mut self) {
         self.active_player = match self.active_player {
             Faction::Blue => Faction::Red,
-            Faction::Red => Faction::Blue
+            Faction::Red => Faction::Blue,
         }
     }
 
@@ -63,7 +51,7 @@ impl Game {
         match self.active_player {
             Faction::Blue => {
                 self.blue_score.hits += 1;
-            },
+            }
             Faction::Red => {
                 self.red_score.hits += 1;
             }
@@ -74,7 +62,7 @@ impl Game {
         match self.active_player {
             Faction::Blue => {
                 self.blue_score.misses += 1;
-            },
+            }
             Faction::Red => {
                 self.red_score.misses += 1;
             }
@@ -107,18 +95,18 @@ impl Game {
             let mut rng = thread_rng();
             let origin = Coordinates {
                 x: rng.gen_range(0, self.width),
-                y: rng.gen_range(0, self.height)
+                y: rng.gen_range(0, self.height),
             };
 
             match self.active_player {
                 Faction::Red => {
                     if !self.is_ship_at_coordinates(&self.red_ships, &origin) {
-                        return Ok(origin)
+                        return Ok(origin);
                     }
-                },
+                }
                 Faction::Blue => {
                     if !self.is_ship_at_coordinates(&self.blue_ships, &origin) {
-                        return Ok(origin)
+                        return Ok(origin);
                     }
                 }
             }
@@ -132,29 +120,29 @@ impl Game {
                 let heading = random();
                 let tentative_ship = Ship::new(origin, heading, length);
                 if self.should_place_ship(&self.red_ships, &tentative_ship) {
-                    return Ok(heading)
+                    return Ok(heading);
                 } else {
                     let heading = heading.flip();
                     let tentative_ship = Ship::new(origin, heading, length);
                     if self.should_place_ship(&self.red_ships, &tentative_ship) {
-                        return Ok(heading)
+                        return Ok(heading);
                     } else {
-                        return Err("Couldn't find a good heading")
+                        return Err("Couldn't find a good heading");
                     }
                 }
-            },
+            }
             Faction::Blue => {
                 let heading = random();
                 let tentative_ship = Ship::new(origin, heading, length);
                 if self.should_place_ship(&self.blue_ships, &tentative_ship) {
-                    return Ok(heading)
+                    return Ok(heading);
                 } else {
                     let heading = heading.flip();
                     let tentative_ship = Ship::new(origin, heading, length);
                     if self.should_place_ship(&self.blue_ships, &tentative_ship) {
-                        return Ok(heading)
+                        return Ok(heading);
                     } else {
-                        return Err("Couldn't find a good heading")
+                        return Err("Couldn't find a good heading");
                     }
                 }
             }
@@ -169,7 +157,7 @@ impl Game {
             if origin.is_ok() {
                 let heading = self.auto_select_heading(origin.unwrap(), length);
                 if heading.is_ok() {
-                    return Ok(Ship::new(origin.unwrap(), heading.unwrap(), length))
+                    return Ok(Ship::new(origin.unwrap(), heading.unwrap(), length));
                 }
             }
         }
@@ -178,26 +166,22 @@ impl Game {
 
     fn should_place_attack(&self, attacks: &Vec<Attack>, coordinates: &Coordinates) -> bool {
         for attack in attacks.iter() {
-            if attack.coordinates.x == coordinates.x &&
-               attack.coordinates.y == coordinates.y {
-                   return false;
-               }
+            if attack.coordinates.x == coordinates.x && attack.coordinates.y == coordinates.y {
+                return false;
+            }
         }
-        return true
+        return true;
     }
 
     pub fn place_attack(&mut self, coordinates: Coordinates) -> Result<(), &str> {
         match self.active_player {
             Faction::Red => {
                 if self.should_place_attack(&self.blue_attacks, &coordinates) {
-                    let attack = Attack::new(
-                        &self.blue_ships,
-                        coordinates
-                    );
+                    let attack = Attack::new(&self.blue_ships, coordinates);
                     match attack.result {
                         AttackResult::Hit => {
                             self.increment_hits();
-                        },
+                        }
                         AttackResult::Miss => {
                             self.increment_misses();
                         }
@@ -207,17 +191,14 @@ impl Game {
                 } else {
                     Err("Can't place an attack there")
                 }
-            },
+            }
             Faction::Blue => {
                 if self.should_place_attack(&self.red_attacks, &coordinates) {
-                    let attack = Attack::new(
-                        &self.red_ships,
-                        coordinates
-                    );
+                    let attack = Attack::new(&self.red_ships, coordinates);
                     match attack.result {
                         AttackResult::Hit => {
                             self.increment_hits();
-                        },
+                        }
                         AttackResult::Miss => {
                             self.increment_misses();
                         }
@@ -232,28 +213,24 @@ impl Game {
     }
 
     pub fn kiss_ling_ling(&self) {
-        println!("{}{}{}",
-            "\u{1F436}",
-            "\u{1F48B}",
-            "\u{1F407}",
-        );
+        println!("{}{}{}", "\u{1F436}", "\u{1F48B}", "\u{1F407}",);
     }
 
     fn should_place_ship(&self, ships: &Vec<Ship>, ship: &Ship) -> bool {
         for ship_segment in ship.segments.iter() {
             if self.is_ship_at_coordinates(&ships, &ship_segment.coordinates) {
-                return false
+                return false;
             }
         }
         match ship.heading {
             Heading::East => {
                 if self.width - ship.origin.x < ship.length {
-                    return false
+                    return false;
                 }
-            },
+            }
             Heading::South => {
                 if self.height - ship.origin.y < ship.length {
-                    return false
+                    return false;
                 }
             }
         }
@@ -263,10 +240,11 @@ impl Game {
     fn is_ship_at_coordinates(&self, ships: &Vec<Ship>, coordinates: &Coordinates) -> bool {
         for ship in ships.iter() {
             for ship_segment in ship.segments.iter() {
-                if ship_segment.coordinates.x == coordinates.x &&
-                   ship_segment.coordinates.y == coordinates.y {
-                       return true
-                   }
+                if ship_segment.coordinates.x == coordinates.x
+                    && ship_segment.coordinates.y == coordinates.y
+                {
+                    return true;
+                }
             }
         }
         false
@@ -317,7 +295,7 @@ mod tests {
     fn test_ships_should_not_go_off_board() {
         let mut game = Game::default();
         assert_eq!(game.blue_ships.len(), 0);
-        let result = game.place_ship(Ship::new(Coordinates { x: 7, y: 0}, Heading::East, 2));
+        let result = game.place_ship(Ship::new(Coordinates { x: 7, y: 0 }, Heading::East, 2));
         assert!(result.is_err());
     }
 
@@ -361,7 +339,7 @@ mod tests {
         assert_eq!(game.blue_ships.len(), 1);
         game.toggle_active_player();
         game.place_attack(Coordinates { x: 0, y: 0 }).unwrap();
-        let result = game.place_attack(Coordinates { x: 0, y: 0});
+        let result = game.place_attack(Coordinates { x: 0, y: 0 });
         assert!(result.is_err());
         assert_eq!(game.blue_attacks.len(), 1);
     }
@@ -395,8 +373,11 @@ mod tests {
     fn test_auto_create_5_ships() {
         let mut game = Game::default();
         for length in vec![2, 2, 3, 4, 5] {
-            let ship = game.auto_create_ship(length).expect("Should have been able to create the ship");
-            game.place_ship(ship).expect("Should have been able to place ship");
+            let ship = game
+                .auto_create_ship(length)
+                .expect("Should have been able to create the ship");
+            game.place_ship(ship)
+                .expect("Should have been able to place ship");
         }
         assert_eq!(game.blue_ships.len(), 5);
     }

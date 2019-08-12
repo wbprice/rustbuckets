@@ -3,7 +3,7 @@ pub enum Mode {
     Title,
     Setup,
     Play,
-    Endscreen
+    Endscreen,
 }
 
 impl Default for Mode {

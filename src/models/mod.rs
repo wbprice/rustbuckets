@@ -9,13 +9,6 @@ mod scores;
 mod ship;
 
 pub use self::{
-    attack::Attack,
-    attack_result::AttackResult,
-    board::Board,
-    coordinates::Coordinates,
-    faction::Faction,
-    heading::Heading,
-    game::Game,
-    scores::Scores,
-    ship::Ship,
+    attack::Attack, attack_result::AttackResult, board::Board, coordinates::Coordinates,
+    faction::Faction, game::Game, heading::Heading, scores::Scores, ship::Ship,
 };
