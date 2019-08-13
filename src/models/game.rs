@@ -346,7 +346,7 @@ mod tests {
 
     #[test]
     fn test_auto_select_origin_empty_board() {
-        let mut game = Game::default();
+        let game = Game::default();
         let origin = game.auto_select_origin().unwrap();
         assert!(origin.x >= 0);
         assert!(origin.x <= 7);
@@ -356,7 +356,7 @@ mod tests {
 
     #[test]
     fn test_auto_select_heading_empty_board() {
-        let mut game = Game::default();
+        let game = Game::default();
         let origin = game.auto_select_origin().unwrap();
         let heading = game.auto_select_heading(origin, 2);
         assert!(heading.is_ok());
@@ -364,7 +364,7 @@ mod tests {
 
     #[test]
     fn test_auto_create_ship() {
-        let mut game = Game::default();
+        let game = Game::default();
         let ship = game.auto_create_ship(2);
         assert!(ship.is_ok());
     }
