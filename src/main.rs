@@ -4,10 +4,9 @@ mod models;
 use models::Game;
 
 fn main() {
-    let game = Game {
+    let mut game = Game {
         ..Default::default()
     };
 
-    dbg!(game);
-    println!("Hello world!");
+    game.start();
 }

@@ -249,6 +249,37 @@ impl Game {
         }
         false
     }
+
+    pub fn start(&mut self) {
+        loop {
+            match &self.mode {
+                Mode::Title => {
+                    println!("hello title screen");
+                    self.switch_mode(Mode::Setup);
+                }
+                Mode::Setup => {
+                    println!("hello setup screen");
+                    for length in vec![2, 2, 3, 4, 5] {
+                        let ship = self
+                            .auto_create_ship(length)
+                            .expect("Should have been able to create the ship");
+                        self.place_ship(ship)
+                            .expect("Should have been able to place the ship!");
+                    }
+                    self.switch_mode(Mode::Play);
+                }
+                Mode::Play => {
+                    println!("hello play screen");
+                    dbg!(&self);
+                    self.switch_mode(Mode::Endscreen);
+                }
+                Mode::Endscreen => {
+                    println!("hello endscreen");
+                    break;
+                }
+            }
+        }
+    }
 }
 
 #[cfg(test)]
