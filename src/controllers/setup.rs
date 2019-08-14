@@ -7,7 +7,7 @@ use termion::{color, style};
 
 use crate::{
     controllers::Mode,
-    models::{Board, Coordinates, Game, Label, Ship, Heading},
+    models::{Board, Coordinates, Game, Heading, Label, Ship},
     views::{BoardView, LabelView, ShipView},
 };
 
@@ -50,15 +50,15 @@ pub fn setup_controller(game: &mut Game) {
     let red_board_view = BoardView::new(Coordinates { x: 1, y: 4 }, red_board);
     let blue_board_title_view = LabelView::new(Coordinates { x: 1, y: 22 }, blue_board_title);
     let blue_board_view = BoardView::new(Coordinates { x: 1, y: 23 }, blue_board);
-    let mut red_ship_views : Vec<ShipView> = vec![];
-    let mut blue_ship_views : Vec<ShipView> = vec![];
+    let mut red_ship_views: Vec<ShipView> = vec![];
+    let mut blue_ship_views: Vec<ShipView> = vec![];
     for ship in game.red_ships.clone().into_iter() {
         red_ship_views.push(ShipView::new(
             Coordinates {
                 x: red_board_view.origin.x,
-                y: red_board_view.origin.y
+                y: red_board_view.origin.y,
             },
-            ship
+            ship,
         ))
     }
 
@@ -72,24 +72,13 @@ pub fn setup_controller(game: &mut Game) {
         ship_view.render(&mut stdout);
     }
 
-
     // Preamble for letting players place their own ships
     let mut ship_lengths_to_place = vec![2, 2, 3, 4, 5];
-    let mut new_ship_origin = Coordinates {
-        x: 0,
-        y: 0
-    };
+    let mut new_ship_origin = Coordinates { x: 0, y: 0 };
     let mut new_ship_length = ship_lengths_to_place.pop().unwrap();
     let mut new_ship_heading = Heading::East;
-    let mut new_ship = Ship::new(
-        new_ship_origin,
-        new_ship_heading,
-        new_ship_length
-    );
-    let mut new_ship_view = ShipView::new(
-        blue_board_view.origin,
-        new_ship
-    );
+    let mut new_ship = Ship::new(new_ship_origin, new_ship_heading, new_ship_length);
+    let mut new_ship_view = ShipView::new(blue_board_view.origin, new_ship);
 
     new_ship_view.render(&mut stdout);
 
@@ -104,32 +93,22 @@ pub fn setup_controller(game: &mut Game) {
             Key::Char('q') => {
                 game.switch_mode(Mode::Title);
                 break;
-            },
-            Key::Char('w') => {
-
-            },
-            Key::Char('a') => {
-
-            },
-            Key::Char('s') => {
-
-            },
-            Key::Char('d') => {
-
             }
+            Key::Char('w') => {}
+            Key::Char('a') => {}
+            Key::Char('s') => {}
+            Key::Char('d') => {}
             Key::Char('r') => {
                 new_ship_heading = match new_ship_heading {
                     Heading::South => Heading::East,
-                    Heading::East => Heading::South
+                    Heading::East => Heading::South,
                 };
 
-                new_ship_view = new_ship_view.update(
-                    Ship::new(
-                        new_ship_origin,
-                        new_ship_heading,
-                        new_ship_length
-                    )
-                )
+                new_ship_view = new_ship_view.update(Ship::new(
+                    new_ship_origin,
+                    new_ship_heading,
+                    new_ship_length,
+                ))
             }
             _ => {}
         }

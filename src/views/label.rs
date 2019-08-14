@@ -15,10 +15,7 @@ impl LabelView {
     }
 
     pub fn update(self, model: Label) -> LabelView {
-        LabelView {
-            model,
-            ..self
-        }
+        LabelView { model, ..self }
     }
 
     pub fn render(&self, stdout: &mut RawTerminal<Stdout>) {

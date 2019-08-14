@@ -36,7 +36,6 @@ impl Default for Game {
 }
 
 impl Game {
-
     pub fn toggle_active_player(&mut self) {
         self.active_player = match self.active_player {
             Faction::Blue => Faction::Red,

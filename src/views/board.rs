@@ -1,6 +1,6 @@
 use std::io::{Stdout, Write};
 use termion::cursor::Goto;
-use termion::raw::{RawTerminal};
+use termion::raw::RawTerminal;
 use termion::{color, style};
 
 use crate::models::{Board, Coordinates};
