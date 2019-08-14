@@ -8,7 +8,7 @@ use termion::{color, style};
 use crate::{
     controllers::Mode,
     models::{Board, Coordinates, Game, Label},
-    views::{BoardView, LabelView},
+    views::{BoardView, LabelView, ShipView},
 };
 
 pub fn setup_controller(game: &mut Game) {
@@ -31,22 +31,7 @@ pub fn setup_controller(game: &mut Game) {
     let red_board = Board::new(game.width, game.height);
     let blue_board = Board::new(game.width, game.height);
 
-    // Views
-    let title_view = LabelView::new(Coordinates { x: 1, y: 1 }, &title);
-    let red_board_title_view = LabelView::new(Coordinates { x: 1, y: 3 }, &red_board_title);
-    let red_board_view = BoardView::new(Coordinates { x: 1, y: 4 }, &red_board);
-    let blue_board_title_view = LabelView::new(Coordinates { x: 1, y: 22 }, &blue_board_title);
-    let blue_board_view = BoardView::new(Coordinates { x: 1, y: 23 }, &blue_board);
-
-    title_view.render(&mut stdout);
-    red_board_title_view.render(&mut stdout);
-    red_board_view.render(&mut stdout);
-
-    blue_board_title_view.render(&mut stdout);
-    blue_board_view.render(&mut stdout);
-
-    stdout.flush().unwrap();
-
+    // Setup AI ships
     for length in vec![2, 2, 3, 4, 5] {
         let ship = game
             .auto_create_ship(length)
@@ -54,6 +39,36 @@ pub fn setup_controller(game: &mut Game) {
         game.place_ship(ship)
             .expect("Should have been able to place the ship!");
     }
+
+    // Views
+    let title_view = LabelView::new(Coordinates { x: 1, y: 1 }, &title);
+    let red_board_title_view = LabelView::new(Coordinates { x: 1, y: 3 }, &red_board_title);
+    let red_board_view = BoardView::new(Coordinates { x: 1, y: 4 }, &red_board);
+    let blue_board_title_view = LabelView::new(Coordinates { x: 1, y: 22 }, &blue_board_title);
+    let blue_board_view = BoardView::new(Coordinates { x: 1, y: 23 }, &blue_board);
+    let mut red_ship_views : Vec<ShipView> = vec![];
+    let mut blue_ship_views : Vec<ShipView> = vec![];
+    for ship in game.red_ships.iter() {
+        red_ship_views.push(ShipView::new(
+            Coordinates {
+                x: blue_board_view.origin.x,
+                y: blue_board_view.origin.y
+            },
+            &ship
+        ))
+    }
+
+    // Initial render
+    title_view.render(&mut stdout);
+    red_board_title_view.render(&mut stdout);
+    red_board_view.render(&mut stdout);
+    blue_board_title_view.render(&mut stdout);
+    blue_board_view.render(&mut stdout);
+    for ship_view in red_ship_views.iter() {
+        ship_view.render(&mut stdout);
+    }
+
+    stdout.flush().unwrap();
 
     for c in stdin.keys() {
         match c.unwrap() {

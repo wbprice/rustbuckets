@@ -6,7 +6,7 @@ use termion::{color, style};
 use crate::models::{Board, Coordinates};
 
 pub struct BoardView<'a> {
-    origin: Coordinates,
+    pub origin: Coordinates,
     model: &'a Board,
 }
 
