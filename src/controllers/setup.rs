@@ -33,10 +33,10 @@ pub fn setup_controller(game: &mut Game) {
 
     // Views
     let title_view = LabelView::new(Coordinates { x: 1, y: 1 }, &title);
-    let red_board_title_view = LabelView::new(Coordinates { x: 1, y: 1 }, &red_board_title);
-    let red_board_view = BoardView::new(Coordinates { x: 1, y: 2 }, &red_board);
-    let blue_board_title_view = LabelView::new(Coordinates { x: 1, y: 1 }, &blue_board_title);
-    let blue_board_view = BoardView::new(Coordinates { x: 1, y: 22 }, &blue_board);
+    let red_board_title_view = LabelView::new(Coordinates { x: 1, y: 3 }, &red_board_title);
+    let red_board_view = BoardView::new(Coordinates { x: 1, y: 4 }, &red_board);
+    let blue_board_title_view = LabelView::new(Coordinates { x: 1, y: 22 }, &blue_board_title);
+    let blue_board_view = BoardView::new(Coordinates { x: 1, y: 23 }, &blue_board);
 
     title_view.render(&mut stdout);
     red_board_title_view.render(&mut stdout);

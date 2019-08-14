@@ -1,14 +1,6 @@
-use rand::{
-    distributions::{Distribution, Standard},
-    seq::SliceRandom,
-    thread_rng, Rng,
-};
-use std::io::{stdin, stdout, Stdin, Stdout, Write};
-use std::{thread, time};
+use std::io::{Stdout, Write};
 use termion::cursor::Goto;
-use termion::event::Key;
-use termion::input::TermRead;
-use termion::raw::{IntoRawMode, RawTerminal};
+use termion::raw::{RawTerminal};
 use termion::{color, style};
 
 use crate::models::{Board, Coordinates};
