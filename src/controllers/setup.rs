@@ -7,7 +7,7 @@ use termion::{color, style};
 
 use crate::{
     controllers::Mode,
-    models::{Board, Coordinates, Game, Label},
+    models::{Board, Coordinates, Game, Label, Ship, Heading},
     views::{BoardView, LabelView, ShipView},
 };
 
@@ -74,6 +74,23 @@ pub fn setup_controller(game: &mut Game) {
 
     stdout.flush().unwrap();
 
+    // Preamble for letting players place their own ships
+    let mut ship_lengths_to_place = vec![2, 2, 3, 4, 5];
+    let mut new_ship_length = ship_lengths_to_place.pop().unwrap();
+    let mut new_ship_heading = Heading::East;
+    let mut new_ship = Ship::new(
+        Coordinates {
+            x: 0,
+            y: 0
+        },
+        new_ship_heading,
+        new_ship_length
+    );
+    let new_ship_view = ShipView::new(
+        new_ship.origin,
+        &new_ship
+    );
+
     for c in stdin.keys() {
         match c.unwrap() {
             Key::Char('f') => {
@@ -96,6 +113,7 @@ pub fn setup_controller(game: &mut Game) {
         for ship_view in red_ship_views.iter() {
             ship_view.render(&mut stdout);
         }
+        new_ship_view.render(&mut stdout);
 
         stdout.flush().unwrap();
     }
