@@ -8,7 +8,7 @@ use termion::{color, style};
 use crate::{
     controllers::Mode,
     models::{Board, Coordinates, Game, Label, Ship, Heading},
-    views::{BoardView, LabelView, ShipView},
+    views::{BoardView, LabelView, ShipView, NewShipView},
 };
 
 pub fn setup_controller(game: &mut Game) {
@@ -72,24 +72,28 @@ pub fn setup_controller(game: &mut Game) {
         ship_view.render(&mut stdout);
     }
 
-    stdout.flush().unwrap();
 
     // Preamble for letting players place their own ships
     let mut ship_lengths_to_place = vec![2, 2, 3, 4, 5];
+    let mut new_ship_origin = Coordinates {
+        x: 0,
+        y: 0
+    };
     let mut new_ship_length = ship_lengths_to_place.pop().unwrap();
     let mut new_ship_heading = Heading::East;
     let mut new_ship = Ship::new(
-        Coordinates {
-            x: 0,
-            y: 0
-        },
+        new_ship_origin,
         new_ship_heading,
         new_ship_length
     );
-    let new_ship_view = ShipView::new(
-        new_ship.origin,
-        &new_ship
+    let mut new_ship_view = NewShipView::new(
+        blue_board_view.origin,
+        new_ship
     );
+
+    new_ship_view.render(&mut stdout);
+
+    stdout.flush().unwrap();
 
     for c in stdin.keys() {
         match c.unwrap() {
@@ -102,11 +106,19 @@ pub fn setup_controller(game: &mut Game) {
                 break;
             },
             Key::Char('r') => {
-                let new_heading = match new_ship.heading {
-                    Heading::East => Heading::South,
-                    Heading::South => Heading::East
+                new_ship_heading = match new_ship_heading {
+                    Heading::South => Heading::East,
+                    Heading::East => Heading::South
                 };
-                new_ship.heading = new_heading;
+
+                new_ship_view = NewShipView::new(
+                    blue_board_view.origin,
+                    Ship::new(
+                        new_ship_origin,
+                        new_ship_heading,
+                        new_ship_length
+                    )
+                )
             }
             _ => {}
         }

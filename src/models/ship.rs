@@ -6,7 +6,7 @@ pub struct ShipSegment {
 }
 
 impl ShipSegment {
-    fn new(coordinates: Coordinates) -> ShipSegment {
+    pub fn new(coordinates: Coordinates) -> ShipSegment {
         ShipSegment { coordinates }
     }
 }
