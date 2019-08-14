@@ -32,6 +32,8 @@ pub fn setup_controller(game: &mut Game) {
     let blue_board = Board::new(game.width, game.height);
 
     // Setup AI ships
+    // Toggle to red player
+    game.toggle_active_player();
     for length in vec![2, 2, 3, 4, 5] {
         let ship = game
             .auto_create_ship(length)
@@ -39,6 +41,8 @@ pub fn setup_controller(game: &mut Game) {
         game.place_ship(ship)
             .expect("Should have been able to place the ship!");
     }
+    // Toggle to blue player
+    game.toggle_active_player();
 
     // Views
     let title_view = LabelView::new(Coordinates { x: 1, y: 1 }, &title);
@@ -51,8 +55,8 @@ pub fn setup_controller(game: &mut Game) {
     for ship in game.red_ships.iter() {
         red_ship_views.push(ShipView::new(
             Coordinates {
-                x: blue_board_view.origin.x,
-                y: blue_board_view.origin.y
+                x: red_board_view.origin.x,
+                y: red_board_view.origin.y
             },
             &ship
         ))
@@ -82,5 +86,17 @@ pub fn setup_controller(game: &mut Game) {
             }
             _ => {}
         }
+
+        // Rerender
+        title_view.render(&mut stdout);
+        red_board_title_view.render(&mut stdout);
+        red_board_view.render(&mut stdout);
+        blue_board_title_view.render(&mut stdout);
+        blue_board_view.render(&mut stdout);
+        for ship_view in red_ship_views.iter() {
+            ship_view.render(&mut stdout);
+        }
+
+        stdout.flush().unwrap();
     }
 }
