@@ -1,6 +1,6 @@
 mod controllers;
-mod views;
 mod models;
+mod views;
 
 use models::Game;
 

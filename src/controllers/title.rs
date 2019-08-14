@@ -2,26 +2,19 @@ use std::io::{stdin, stdout, Write};
 use termion::cursor::Goto;
 use termion::event::Key;
 use termion::input::TermRead;
-use termion::raw::{IntoRawMode};
+use termion::raw::IntoRawMode;
 
 use crate::{
-    models::{
-        Game,
-        Label,
-        Coordinates
-    },
-    views::{
-        LabelView
-    },
-    controllers::{
-        Mode
-    }
+    controllers::Mode,
+    models::{Coordinates, Game, Label},
+    views::LabelView,
 };
 
 pub fn title_controller(game: &mut Game) {
     let mut stdout = stdout().into_raw_mode().unwrap();
     let stdin = stdin();
 
+    // Clear the screen
     write!(
         stdout,
         "{}{}{}",
@@ -37,10 +30,11 @@ pub fn title_controller(game: &mut Game) {
     let quit_instructions = Label::new("Press Q to quit".to_string());
 
     // Views
-    let title_view = LabelView::new(Coordinates { x: 1, y: 1}, &title);
-    let play_instructions_view = LabelView::new(Coordinates { x: 1, y: 2}, &play_instructions);
-    let quit_instructions_view = LabelView::new(Coordinates { x: 1, y: 3}, &quit_instructions);
+    let title_view = LabelView::new(Coordinates { x: 1, y: 1 }, &title);
+    let play_instructions_view = LabelView::new(Coordinates { x: 1, y: 2 }, &play_instructions);
+    let quit_instructions_view = LabelView::new(Coordinates { x: 1, y: 3 }, &quit_instructions);
 
+    // Initial render
     title_view.render(&mut stdout);
     play_instructions_view.render(&mut stdout);
     quit_instructions_view.render(&mut stdout);
@@ -52,7 +46,7 @@ pub fn title_controller(game: &mut Game) {
             Key::Char('f') => {
                 game.switch_mode(Mode::Setup);
                 break;
-            },
+            }
             Key::Char('q') => {
                 game.switch_mode(Mode::Exit);
                 break;

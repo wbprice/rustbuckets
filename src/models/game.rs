@@ -1,9 +1,5 @@
 use crate::{
-    controllers::{
-        Mode,
-        title_controller,
-        setup_controller
-    },
+    controllers::{setup_controller, title_controller, Mode},
     models::{Attack, AttackResult, Coordinates, Faction, Heading, Scores, Ship},
 };
 use rand::{random, thread_rng, Rng};

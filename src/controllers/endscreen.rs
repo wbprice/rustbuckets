@@ -1,3 +1,1 @@
-pub fn endscreen() {
-
-}
+pub fn endscreen() {}

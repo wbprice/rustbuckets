@@ -4,29 +4,23 @@ use rand::{
     thread_rng, Rng,
 };
 use std::io::{stdin, stdout, Stdin, Stdout, Write};
+use std::{thread, time};
 use termion::cursor::Goto;
 use termion::event::Key;
 use termion::input::TermRead;
 use termion::raw::{IntoRawMode, RawTerminal};
 use termion::{color, style};
-use std::{thread, time};
 
-use crate::models::{
-    Board,
-    Coordinates
-};
+use crate::models::{Board, Coordinates};
 
 pub struct BoardView<'a> {
     origin: Coordinates,
-    model: &'a Board
+    model: &'a Board,
 }
 
 impl<'a> BoardView<'a> {
     pub fn new(origin: Coordinates, model: &Board) -> BoardView {
-        BoardView {
-            origin,
-            model
-        }
+        BoardView { origin, model }
     }
 
     fn render_latitude_line(&self, stdout: &mut RawTerminal<Stdout>) {

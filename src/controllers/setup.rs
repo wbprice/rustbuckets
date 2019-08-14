@@ -6,19 +6,9 @@ use termion::raw::{IntoRawMode, RawTerminal};
 use termion::{color, style};
 
 use crate::{
-    models::{
-        Game,
-        Board,
-        Label,
-        Coordinates
-    },
-    controllers::{
-        Mode
-    },
-    views::{
-        BoardView,
-        LabelView
-    }
+    controllers::Mode,
+    models::{Board, Coordinates, Game, Label},
+    views::{BoardView, LabelView},
 };
 
 pub fn setup_controller(game: &mut Game) {
@@ -42,10 +32,10 @@ pub fn setup_controller(game: &mut Game) {
     let blue_board = Board::new(game.width, game.height);
 
     // Views
-    let title_view = LabelView::new(Coordinates { x: 1, y: 1}, &title);
-    let red_board_title_view = LabelView::new(Coordinates { x: 1, y: 1}, &red_board_title);
+    let title_view = LabelView::new(Coordinates { x: 1, y: 1 }, &title);
+    let red_board_title_view = LabelView::new(Coordinates { x: 1, y: 1 }, &red_board_title);
     let red_board_view = BoardView::new(Coordinates { x: 1, y: 2 }, &red_board);
-    let blue_board_title_view = LabelView::new(Coordinates { x: 1, y: 1}, &blue_board_title);
+    let blue_board_title_view = LabelView::new(Coordinates { x: 1, y: 1 }, &blue_board_title);
     let blue_board_view = BoardView::new(Coordinates { x: 1, y: 22 }, &blue_board);
 
     title_view.render(&mut stdout);
@@ -70,11 +60,11 @@ pub fn setup_controller(game: &mut Game) {
             Key::Char('f') => {
                 game.switch_mode(Mode::Play);
                 break;
-            },
+            }
             Key::Char('q') => {
                 game.switch_mode(Mode::Title);
                 break;
-            },
+            }
             _ => {}
         }
     }

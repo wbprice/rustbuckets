@@ -1,7 +1,4 @@
 mod board;
 mod label;
 
-pub use self::{
-    board::BoardView,
-    label::LabelView
-};
+pub use self::{board::BoardView, label::LabelView};

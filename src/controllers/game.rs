@@ -1,3 +1,1 @@
-pub fn game() {
-
-}
+pub fn game() {}
