@@ -105,14 +105,25 @@ pub fn setup_controller(game: &mut Game) {
                 game.switch_mode(Mode::Title);
                 break;
             },
+            Key::Char('w') => {
+
+            },
+            Key::Char('a') => {
+
+            },
+            Key::Char('s') => {
+
+            },
+            Key::Char('d') => {
+
+            }
             Key::Char('r') => {
                 new_ship_heading = match new_ship_heading {
                     Heading::South => Heading::East,
                     Heading::East => Heading::South
                 };
 
-                new_ship_view = NewShipView::new(
-                    blue_board_view.origin,
+                new_ship_view = new_ship_view.update(
                     Ship::new(
                         new_ship_origin,
                         new_ship_heading,
