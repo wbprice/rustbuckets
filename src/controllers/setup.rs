@@ -100,6 +100,13 @@ pub fn setup_controller(game: &mut Game) {
             Key::Char('q') => {
                 game.switch_mode(Mode::Title);
                 break;
+            },
+            Key::Char('r') => {
+                let new_heading = match new_ship.heading {
+                    Heading::East => Heading::South,
+                    Heading::South => Heading::East
+                };
+                new_ship.heading = new_heading;
             }
             _ => {}
         }
