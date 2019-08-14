@@ -5,14 +5,20 @@ use termion::input::TermRead;
 use termion::raw::{IntoRawMode, RawTerminal};
 use termion::{color, style};
 
-use crate::models::{
-    Game,
-    Board,
-    Label,
-    Coordinates
-};
-use crate::controllers::{
-    Mode
+use crate::{
+    models::{
+        Game,
+        Board,
+        Label,
+        Coordinates
+    },
+    controllers::{
+        Mode
+    },
+    views::{
+        BoardView,
+        LabelView
+    }
 };
 
 pub fn setup_controller(game: &mut Game) {
@@ -28,18 +34,26 @@ pub fn setup_controller(game: &mut Game) {
     )
     .unwrap();
 
+    // Models
     let title = Label::new("Rustbuckets 0.1.0".to_string());
     let red_board_title = Label::new("Red Team".to_string());
     let blue_board_title = Label::new("Blue Team".to_string());
     let red_board = Board::new(game.width, game.height);
     let blue_board = Board::new(game.width, game.height);
 
-    title.render(&mut stdout, Coordinates { x: 1, y: 1});
-    red_board_title.render(&mut stdout, Coordinates { x: 1, y: 3});
-    red_board.render(&mut stdout, Coordinates { x: 1, y: 4});
+    // Views
+    let title_view = LabelView::new(Coordinates { x: 1, y: 1}, &title);
+    let red_board_title_view = LabelView::new(Coordinates { x: 1, y: 1}, &red_board_title);
+    let red_board_view = BoardView::new(Coordinates { x: 1, y: 2 }, &red_board);
+    let blue_board_title_view = LabelView::new(Coordinates { x: 1, y: 1}, &blue_board_title);
+    let blue_board_view = BoardView::new(Coordinates { x: 1, y: 22 }, &blue_board);
 
-    blue_board_title.render(&mut stdout, Coordinates { x: 1, y: 22});
-    blue_board.render(&mut stdout, Coordinates { x: 1, y : 23});
+    title_view.render(&mut stdout);
+    red_board_title_view.render(&mut stdout);
+    red_board_view.render(&mut stdout);
+
+    blue_board_title_view.render(&mut stdout);
+    blue_board_view.render(&mut stdout);
 
     stdout.flush().unwrap();
 
