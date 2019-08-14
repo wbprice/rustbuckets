@@ -1,9 +1,3 @@
-use models::{
-    Game,
-};
-use controllers::{
-    Mode
-};
+pub fn game() {
 
-impl Game {
 }

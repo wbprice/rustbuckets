@@ -1,5 +1,9 @@
 use crate::{
-    controllers::Mode,
+    controllers::{
+        Mode,
+        title_controller,
+        setup_controller
+    },
     models::{Attack, AttackResult, Coordinates, Faction, Heading, Scores, Ship},
 };
 use rand::{random, thread_rng, Rng};
@@ -253,21 +257,8 @@ impl Game {
     pub fn start(&mut self) {
         loop {
             match &self.mode {
-                Mode::Title => {
-                    println!("hello title screen");
-                    self.switch_mode(Mode::Setup);
-                }
-                Mode::Setup => {
-                    println!("hello setup screen");
-                    for length in vec![2, 2, 3, 4, 5] {
-                        let ship = self
-                            .auto_create_ship(length)
-                            .expect("Should have been able to create the ship");
-                        self.place_ship(ship)
-                            .expect("Should have been able to place the ship!");
-                    }
-                    self.switch_mode(Mode::Play);
-                }
+                Mode::Title => title_controller(self),
+                Mode::Setup => setup_controller(self),
                 Mode::Play => {
                     println!("hello play screen");
                     dbg!(&self);
@@ -275,6 +266,9 @@ impl Game {
                 }
                 Mode::Endscreen => {
                     println!("hello endscreen");
+                    break;
+                }
+                Mode::Exit => {
                     break;
                 }
             }

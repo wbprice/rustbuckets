@@ -4,6 +4,7 @@ pub enum Mode {
     Setup,
     Play,
     Endscreen,
+    Exit
 }
 
 impl Default for Mode {
