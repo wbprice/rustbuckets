@@ -30,9 +30,9 @@ pub fn title_controller(game: &mut Game) {
     let quit_instructions = Label::new("Press Q to quit".to_string());
 
     // Views
-    let title_view = LabelView::new(Coordinates { x: 1, y: 1 }, &title);
-    let play_instructions_view = LabelView::new(Coordinates { x: 1, y: 2 }, &play_instructions);
-    let quit_instructions_view = LabelView::new(Coordinates { x: 1, y: 3 }, &quit_instructions);
+    let title_view = LabelView::new(Coordinates { x: 1, y: 1 }, title);
+    let play_instructions_view = LabelView::new(Coordinates { x: 1, y: 2 }, play_instructions);
+    let quit_instructions_view = LabelView::new(Coordinates { x: 1, y: 3 }, quit_instructions);
 
     // Initial render
     title_view.render(&mut stdout);

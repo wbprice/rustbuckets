@@ -5,14 +5,18 @@ use termion::{color, style};
 
 use crate::models::{Board, Coordinates};
 
-pub struct BoardView<'a> {
+pub struct BoardView {
     pub origin: Coordinates,
-    model: &'a Board,
+    model: Board,
 }
 
-impl<'a> BoardView<'a> {
-    pub fn new(origin: Coordinates, model: &Board) -> BoardView {
+impl BoardView {
+    pub fn new(origin: Coordinates, model: Board) -> BoardView {
         BoardView { origin, model }
+    }
+
+    pub fn update(self, model: Board) -> BoardView {
+        BoardView { model, ..self }
     }
 
     fn render_latitude_line(&self, stdout: &mut RawTerminal<Stdout>) {

@@ -8,7 +8,7 @@ use termion::{color, style};
 use crate::{
     controllers::Mode,
     models::{Board, Coordinates, Game, Label, Ship, Heading},
-    views::{BoardView, LabelView, ShipView, NewShipView},
+    views::{BoardView, LabelView, ShipView},
 };
 
 pub fn setup_controller(game: &mut Game) {
@@ -45,20 +45,20 @@ pub fn setup_controller(game: &mut Game) {
     game.toggle_active_player();
 
     // Views
-    let title_view = LabelView::new(Coordinates { x: 1, y: 1 }, &title);
-    let red_board_title_view = LabelView::new(Coordinates { x: 1, y: 3 }, &red_board_title);
-    let red_board_view = BoardView::new(Coordinates { x: 1, y: 4 }, &red_board);
-    let blue_board_title_view = LabelView::new(Coordinates { x: 1, y: 22 }, &blue_board_title);
-    let blue_board_view = BoardView::new(Coordinates { x: 1, y: 23 }, &blue_board);
+    let title_view = LabelView::new(Coordinates { x: 1, y: 1 }, title);
+    let red_board_title_view = LabelView::new(Coordinates { x: 1, y: 3 }, red_board_title);
+    let red_board_view = BoardView::new(Coordinates { x: 1, y: 4 }, red_board);
+    let blue_board_title_view = LabelView::new(Coordinates { x: 1, y: 22 }, blue_board_title);
+    let blue_board_view = BoardView::new(Coordinates { x: 1, y: 23 }, blue_board);
     let mut red_ship_views : Vec<ShipView> = vec![];
     let mut blue_ship_views : Vec<ShipView> = vec![];
-    for ship in game.red_ships.iter() {
+    for ship in game.red_ships.clone().into_iter() {
         red_ship_views.push(ShipView::new(
             Coordinates {
                 x: red_board_view.origin.x,
                 y: red_board_view.origin.y
             },
-            &ship
+            ship
         ))
     }
 
@@ -86,7 +86,7 @@ pub fn setup_controller(game: &mut Game) {
         new_ship_heading,
         new_ship_length
     );
-    let mut new_ship_view = NewShipView::new(
+    let mut new_ship_view = ShipView::new(
         blue_board_view.origin,
         new_ship
     );

@@ -4,14 +4,21 @@ use termion::cursor::Goto;
 use termion::raw::RawTerminal;
 use termion::{color, style};
 
-pub struct LabelView<'a> {
+pub struct LabelView {
     origin: Coordinates,
-    model: &'a Label,
+    model: Label,
 }
 
-impl<'a> LabelView<'a> {
-    pub fn new(origin: Coordinates, model: &'a Label) -> LabelView {
+impl LabelView {
+    pub fn new(origin: Coordinates, model: Label) -> LabelView {
         LabelView { origin, model }
+    }
+
+    pub fn update(self, model: Label) -> LabelView {
+        LabelView {
+            model,
+            ..self
+        }
     }
 
     pub fn render(&self, stdout: &mut RawTerminal<Stdout>) {
