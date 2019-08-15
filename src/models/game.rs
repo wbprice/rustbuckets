@@ -240,9 +240,7 @@ impl Game {
     fn is_ship_at_coordinates(&self, ships: &Vec<Ship>, coordinates: &Coordinates) -> bool {
         for ship in ships.iter() {
             for coords in ship.get_segment_coordinates().iter() {
-                if coords.x == coordinates.x
-                    && coords.y == coordinates.y
-                {
+                if coords.x == coordinates.x && coords.y == coordinates.y {
                     return true;
                 }
             }

@@ -4,7 +4,7 @@ use crate::models::{Coordinates, Heading};
 pub struct Ship {
     pub origin: Coordinates,
     pub heading: Heading,
-    pub length: u16
+    pub length: u16,
 }
 
 impl Ship {
@@ -12,12 +12,12 @@ impl Ship {
         Ship {
             origin,
             heading,
-            length
+            length,
         }
     }
 
     pub fn get_segment_coordinates(&self) -> Vec<Coordinates> {
-        let mut segments : Vec<Coordinates> = vec![];
+        let mut segments: Vec<Coordinates> = vec![];
         for n in 0..self.length {
             match self.heading {
                 Heading::East => segments.push(Coordinates {
@@ -27,7 +27,7 @@ impl Ship {
                 Heading::South => segments.push(Coordinates {
                     x: self.origin.x,
                     y: self.origin.y + n,
-                })
+                }),
             }
         }
         segments

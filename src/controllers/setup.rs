@@ -87,35 +87,25 @@ pub fn setup_controller(game: &mut Game) {
     for c in stdin.keys() {
         match c.unwrap() {
             Key::Char('f') => {
-                match game.place_ship(Ship::new(
-                    new_ship_origin,
-                    new_ship_heading,
-                    new_ship_length,
-                )) {
-                    Ok(_) => {
-                        match ship_lengths_to_place.pop() {
-                            Some(length) => {
+                match game.place_ship(new_ship) {
+                    Ok(_) => match ship_lengths_to_place.pop() {
+                        Some(length) => {
+                            blue_ship_views.push(ShipView::new(
+                                blue_board_view.origin,
+                                Ship::new(new_ship_origin, new_ship_heading, new_ship_length),
+                            ));
 
-                                blue_ship_views.push(ShipView::new(
-                                    blue_board_view.origin,
-                                    Ship::new(
-                                        new_ship_origin,
-                                        new_ship_heading,
-                                        new_ship_length
-                                    )
-                                ));
+                            new_ship_length = length;
+                            new_ship_heading = Heading::East;
+                            new_ship_origin = Coordinates { x: 0, y: 0 };
 
-                                new_ship_length = length;
-                                new_ship_heading = Heading::East;
-                                new_ship_origin = Coordinates { x: 0, y: 0 };
-
-                                new_ship = Ship::new(new_ship_origin, new_ship_heading, new_ship_length);
-                                new_ship_view = ShipView::new(blue_board_view.origin, new_ship);
-                            }
-                            None => {
-                                game.switch_mode(Mode::Play);
-                                break;
-                            }
+                            new_ship =
+                                Ship::new(new_ship_origin, new_ship_heading, new_ship_length);
+                            new_ship_view = ShipView::new(blue_board_view.origin, new_ship);
+                        }
+                        None => {
+                            game.switch_mode(Mode::Play);
+                            break;
                         }
                     },
                     Err(_) => {
