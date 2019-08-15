@@ -1,7 +1,7 @@
 mod board;
+mod cursor;
 mod label;
 mod ship;
 mod utils;
-mod cursor;
 
-pub use self::{board::BoardView, label::LabelView, ship::ShipView, cursor::CursorView, utils::*};
+pub use self::{board::BoardView, cursor::CursorView, label::LabelView, ship::ShipView, utils::*};

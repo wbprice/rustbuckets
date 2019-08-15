@@ -6,8 +6,8 @@ use termion::raw::IntoRawMode;
 
 use crate::{
     controllers::Mode,
-    models::{Board, Coordinates, Game, Heading, Label, Ship, Cursor},
-    views::{BoardView, LabelView, ShipView, CursorView},
+    models::{Board, Coordinates, Cursor, Game, Heading, Label, Ship},
+    views::{BoardView, CursorView, LabelView, ShipView},
 };
 
 pub fn game_controller(game: &mut Game) {

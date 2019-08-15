@@ -1,8 +1,8 @@
 mod attack;
 mod attack_result;
-mod cursor;
 mod board;
 mod coordinates;
+mod cursor;
 mod faction;
 mod game;
 mod heading;
@@ -12,6 +12,6 @@ mod ship;
 
 pub use self::{
     attack::Attack, attack_result::AttackResult, board::Board, coordinates::Coordinates,
-    faction::Faction, game::Game, heading::Heading, label::Label, scores::Scores, ship::Ship,
-    cursor::Cursor
+    cursor::Cursor, faction::Faction, game::Game, heading::Heading, label::Label, scores::Scores,
+    ship::Ship,
 };
