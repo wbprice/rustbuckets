@@ -29,7 +29,7 @@ pub fn game_controller(game: &mut Game) {
     let blue_board_title = Label::new("Blue Team".to_string());
     let red_board = Board::new(game.width, game.height);
     let blue_board = Board::new(game.width, game.height);
-    let cursor = Cursor::default();
+    let mut cursor = Cursor::default();
 
     // Views
     let title_view = LabelView::new(Coordinates { x: 1, y: 1 }, title);
@@ -47,7 +47,7 @@ pub fn game_controller(game: &mut Game) {
             ship.clone(),
         ))
     }
-    let cursor_view = CursorView::new(red_board_view.origin, cursor);
+    let mut cursor_view = CursorView::new(red_board_view.origin, cursor);
 
     // Initial render
     title_view.render(&mut stdout);
@@ -68,7 +68,36 @@ pub fn game_controller(game: &mut Game) {
                 game.switch_mode(Mode::Title);
                 break;
             }
+            Key::Char('w') => {
+                cursor = cursor.move_up();
+                cursor_view = cursor_view.update(cursor);
+            }
+            Key::Char('a') => {
+                cursor = cursor.move_left();
+                cursor_view = cursor_view.update(cursor);
+            }
+            Key::Char('s') => {
+                cursor = cursor.move_down();
+                cursor_view = cursor_view.update(cursor);
+            }
+            Key::Char('d') => {
+                cursor = cursor.move_right();
+                cursor_view = cursor_view.update(cursor);
+            }
             _ => {}
         }
+
+        // Rerender
+        title_view.render(&mut stdout);
+        red_board_title_view.render(&mut stdout);
+        red_board_view.render(&mut stdout);
+        blue_board_title_view.render(&mut stdout);
+        blue_board_view.render(&mut stdout);
+        for ship_view in blue_ship_views.iter() {
+            ship_view.render(&mut stdout);
+        }
+        cursor_view.render(&mut stdout);
+
+        stdout.flush().unwrap();
     }
 }
