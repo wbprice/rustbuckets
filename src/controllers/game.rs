@@ -38,8 +38,6 @@ pub fn game_controller(game: &mut Game) {
     let blue_board_title_view = LabelView::new(Coordinates { x: 1, y: 22 }, blue_board_title);
     let blue_board_view = BoardView::new(Coordinates { x: 1, y: 23 }, blue_board);
     let mut blue_ship_views: Vec<ShipView> = vec![];
-    let mut blue_board_attack_views : Vec<AttackView> = vec![];
-    let mut red_board_attack_views : Vec<AttackView> = vec![];
     for ship in game.blue_ships.iter() {
         blue_ship_views.push(ShipView::new(
             Coordinates {
@@ -103,7 +101,7 @@ pub fn game_controller(game: &mut Game) {
             attack_view.render(&mut stdout);
         }
         for attack in game.red_attacks.clone().into_iter() {
-            let attack_view = AttackView::new(blue_board_view.origin, attack);
+            let attack_view = AttackView::new(red_board_view.origin, attack);
             attack_view.render(&mut stdout);
         }
 
