@@ -87,8 +87,24 @@ pub fn setup_controller(game: &mut Game) {
     for c in stdin.keys() {
         match c.unwrap() {
             Key::Char('f') => {
-                game.switch_mode(Mode::Play);
-                break;
+                game.place_ship(new_ship.clone());
+                match ship_lengths_to_place.pop() {
+                    Some(length) => {
+                        new_ship_length = length;
+                        new_ship_heading = Heading::East;
+                        new_ship_origin = Coordinates {
+                            x: 0,
+                            y: 0
+                        };
+
+                        new_ship = Ship::new(new_ship_origin, new_ship_heading, new_ship_length);
+                        new_ship_view = ShipView::new(blue_board_view.origin, new_ship);
+                    },
+                    None => {
+                        game.switch_mode(Mode::Play);
+                        break;
+                    }
+                }
             }
             Key::Char('q') => {
                 game.switch_mode(Mode::Title);
@@ -164,6 +180,9 @@ pub fn setup_controller(game: &mut Game) {
         blue_board_title_view.render(&mut stdout);
         blue_board_view.render(&mut stdout);
         for ship_view in red_ship_views.iter() {
+            ship_view.render(&mut stdout);
+        }
+        for ship_view in blue_ship_views.iter() {
             ship_view.render(&mut stdout);
         }
         new_ship_view.render(&mut stdout);
