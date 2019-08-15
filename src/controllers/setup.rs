@@ -87,22 +87,39 @@ pub fn setup_controller(game: &mut Game) {
     for c in stdin.keys() {
         match c.unwrap() {
             Key::Char('f') => {
-                game.place_ship(new_ship.clone());
-                match ship_lengths_to_place.pop() {
-                    Some(length) => {
-                        new_ship_length = length;
-                        new_ship_heading = Heading::East;
-                        new_ship_origin = Coordinates {
-                            x: 0,
-                            y: 0
-                        };
+                match game.place_ship(Ship::new(
+                    new_ship_origin,
+                    new_ship_heading,
+                    new_ship_length,
+                )) {
+                    Ok(_) => {
+                        match ship_lengths_to_place.pop() {
+                            Some(length) => {
 
-                        new_ship = Ship::new(new_ship_origin, new_ship_heading, new_ship_length);
-                        new_ship_view = ShipView::new(blue_board_view.origin, new_ship);
+                                blue_ship_views.push(ShipView::new(
+                                    blue_board_view.origin,
+                                    Ship::new(
+                                        new_ship_origin,
+                                        new_ship_heading,
+                                        new_ship_length
+                                    )
+                                ));
+
+                                new_ship_length = length;
+                                new_ship_heading = Heading::East;
+                                new_ship_origin = Coordinates { x: 0, y: 0 };
+
+                                new_ship = Ship::new(new_ship_origin, new_ship_heading, new_ship_length);
+                                new_ship_view = ShipView::new(blue_board_view.origin, new_ship);
+                            }
+                            None => {
+                                game.switch_mode(Mode::Play);
+                                break;
+                            }
+                        }
                     },
-                    None => {
-                        game.switch_mode(Mode::Play);
-                        break;
+                    Err(_) => {
+                        // handle err
                     }
                 }
             }
@@ -116,7 +133,7 @@ pub fn setup_controller(game: &mut Game) {
                     new_ship_view = new_ship_view.update(Ship::new(
                         new_ship_origin,
                         new_ship_heading,
-                        new_ship_length
+                        new_ship_length,
                     ));
                 }
             }
@@ -126,35 +143,35 @@ pub fn setup_controller(game: &mut Game) {
                     new_ship_view = new_ship_view.update(Ship::new(
                         new_ship_origin,
                         new_ship_heading,
-                        new_ship_length
+                        new_ship_length,
                     ));
                 }
             }
             Key::Char('s') => {
                 let should_move = match new_ship_heading {
                     Heading::South => new_ship_length + new_ship_origin.y < game.height,
-                    Heading::East => 1 + new_ship_origin.y < game.height
+                    Heading::East => 1 + new_ship_origin.y < game.height,
                 };
                 if should_move {
                     new_ship_origin = new_ship_origin.move_down();
                     new_ship_view = new_ship_view.update(Ship::new(
                         new_ship_origin,
                         new_ship_heading,
-                        new_ship_length
+                        new_ship_length,
                     ));
                 }
             }
             Key::Char('d') => {
                 let should_move = match new_ship_heading {
                     Heading::South => 1 + new_ship_origin.y < game.height,
-                    Heading::East => new_ship_length + new_ship_origin.x < game.height
+                    Heading::East => new_ship_length + new_ship_origin.x < game.height,
                 };
                 if should_move {
                     new_ship_origin = new_ship_origin.move_right();
                     new_ship_view = new_ship_view.update(Ship::new(
                         new_ship_origin,
                         new_ship_heading,
-                        new_ship_length
+                        new_ship_length,
                     ));
                 }
             }
