@@ -1,6 +1,6 @@
 use crate::models::{AttackResult, Coordinates, Ship};
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub struct Attack {
     pub coordinates: Coordinates,
     pub result: AttackResult,
