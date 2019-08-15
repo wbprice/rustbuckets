@@ -1,9 +1,8 @@
-use std::io::{stdin, stdout, Stdin, Stdout, Write};
+use std::io::{stdin, stdout, Write};
 use termion::cursor::Goto;
 use termion::event::Key;
 use termion::input::TermRead;
-use termion::raw::{IntoRawMode, RawTerminal};
-use termion::{color, style};
+use termion::raw::IntoRawMode;
 
 use crate::{
     controllers::Mode,
@@ -52,13 +51,13 @@ pub fn setup_controller(game: &mut Game) {
     let blue_board_view = BoardView::new(Coordinates { x: 1, y: 23 }, blue_board);
     let mut red_ship_views: Vec<ShipView> = vec![];
     let mut blue_ship_views: Vec<ShipView> = vec![];
-    for ship in game.red_ships.clone().into_iter() {
+    for ship in game.red_ships.iter() {
         red_ship_views.push(ShipView::new(
             Coordinates {
                 x: red_board_view.origin.x,
                 y: red_board_view.origin.y,
             },
-            ship,
+            ship.clone(),
         ))
     }
 
@@ -74,10 +73,11 @@ pub fn setup_controller(game: &mut Game) {
 
     // Preamble for letting players place their own ships
     let mut ship_lengths_to_place = vec![2, 2, 3, 4, 5];
-    let mut new_ship_origin = Coordinates { x: 0, y: 0 };
     let mut new_ship_length = ship_lengths_to_place.pop().unwrap();
-    let mut new_ship_heading = Heading::East;
-    let mut new_ship = Ship::new(new_ship_origin, new_ship_heading, new_ship_length);
+    let mut new_ship = Ship {
+        length: new_ship_length,
+        ..Ship::default()
+    };
     let mut new_ship_view = ShipView::new(blue_board_view.origin, new_ship);
 
     new_ship_view.render(&mut stdout);
@@ -90,14 +90,7 @@ pub fn setup_controller(game: &mut Game) {
                 match game.place_ship(new_ship) {
                     Ok(_) => match ship_lengths_to_place.pop() {
                         Some(length) => {
-                            blue_ship_views.push(ShipView::new(
-                                blue_board_view.origin,
-                                new_ship
-                            ));
-
-                            new_ship_length = length;
-                            new_ship_heading = Heading::East;
-                            new_ship_origin = Coordinates { x: 0, y: 0 };
+                            blue_ship_views.push(ShipView::new(blue_board_view.origin, new_ship));
 
                             new_ship = Ship {
                                 length: length,
@@ -120,64 +113,42 @@ pub fn setup_controller(game: &mut Game) {
                 break;
             }
             Key::Char('w') => {
-                if new_ship_origin.y > 0 {
-                    new_ship_origin = new_ship_origin.move_up();
-                    new_ship_view = new_ship_view.update(Ship::new(
-                        new_ship_origin,
-                        new_ship_heading,
-                        new_ship_length,
-                    ));
+                if new_ship.origin.y > 0 {
+                    new_ship = new_ship.move_up();
+                    new_ship_view = new_ship_view.update(new_ship);
                 }
             }
             Key::Char('a') => {
-                if new_ship_origin.x > 0 {
-                    new_ship_origin = new_ship_origin.move_left();
-                    new_ship_view = new_ship_view.update(Ship::new(
-                        new_ship_origin,
-                        new_ship_heading,
-                        new_ship_length,
-                    ));
+                if new_ship.origin.x > 0 {
+                    new_ship = new_ship.move_left();
+                    new_ship_view = new_ship_view.update(new_ship);
                 }
             }
             Key::Char('s') => {
-                let should_move = match new_ship_heading {
-                    Heading::South => new_ship_length + new_ship_origin.y < game.height,
-                    Heading::East => 1 + new_ship_origin.y < game.height,
+                let should_move = match new_ship.heading {
+                    Heading::South => new_ship.length + new_ship.origin.y < game.height,
+                    Heading::East => 1 + new_ship.origin.y < game.height,
                 };
+
                 if should_move {
-                    new_ship_origin = new_ship_origin.move_down();
-                    new_ship_view = new_ship_view.update(Ship::new(
-                        new_ship_origin,
-                        new_ship_heading,
-                        new_ship_length,
-                    ));
+                    new_ship = new_ship.move_down();
+                    new_ship_view = new_ship_view.update(new_ship);
                 }
             }
             Key::Char('d') => {
-                let should_move = match new_ship_heading {
-                    Heading::South => 1 + new_ship_origin.y < game.height,
-                    Heading::East => new_ship_length + new_ship_origin.x < game.height,
+                let should_move = match new_ship.heading {
+                    Heading::South => 1 + new_ship.origin.y < game.height,
+                    Heading::East => new_ship_length + new_ship.origin.x < game.height,
                 };
+
                 if should_move {
-                    new_ship_origin = new_ship_origin.move_right();
-                    new_ship_view = new_ship_view.update(Ship::new(
-                        new_ship_origin,
-                        new_ship_heading,
-                        new_ship_length,
-                    ));
+                    new_ship = new_ship.move_right();
+                    new_ship_view = new_ship_view.update(new_ship);
                 }
             }
             Key::Char('r') => {
-                new_ship_heading = match new_ship_heading {
-                    Heading::South => Heading::East,
-                    Heading::East => Heading::South,
-                };
-
-                new_ship_view = new_ship_view.update(Ship::new(
-                    new_ship_origin,
-                    new_ship_heading,
-                    new_ship_length,
-                ))
+                new_ship = new_ship.flip();
+                new_ship_view = new_ship_view.update(new_ship);
             }
             _ => {}
         }

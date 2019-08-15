@@ -36,6 +36,43 @@ impl Ship {
     pub fn default() -> Ship {
         Ship::new(Coordinates::default(), Heading::default(), 2)
     }
+
+    pub fn move_up(self) -> Ship {
+        Ship {
+            origin: self.origin.get_above(),
+            ..self
+        }
+    }
+
+    pub fn move_right(self) -> Ship {
+        Ship {
+            origin: self.origin.get_right(),
+            ..self
+        }
+    }
+
+    pub fn move_down(self) -> Ship {
+        Ship {
+            origin: self.origin.get_below(),
+            ..self
+        }
+    }
+
+    pub fn move_left(self) -> Ship {
+        Ship {
+            origin: self.origin.get_left(),
+            ..self
+        }
+    }
+
+    pub fn flip(self) -> Ship {
+        let heading = match self.heading {
+            Heading::South => Heading::East,
+            Heading::East => Heading::South,
+        };
+
+        Ship { heading, ..self }
+    }
 }
 
 #[cfg(test)]

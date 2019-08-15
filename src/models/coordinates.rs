@@ -5,28 +5,28 @@ pub struct Coordinates {
 }
 
 impl Coordinates {
-    pub fn move_up(self) -> Coordinates {
+    pub fn get_above(self) -> Coordinates {
         Coordinates {
             y: self.y - 1,
             ..self
         }
     }
 
-    pub fn move_right(self) -> Coordinates {
+    pub fn get_right(self) -> Coordinates {
         Coordinates {
             x: self.x + 1,
             ..self
         }
     }
 
-    pub fn move_down(self) -> Coordinates {
+    pub fn get_below(self) -> Coordinates {
         Coordinates {
             y: self.y + 1,
             ..self
         }
     }
 
-    pub fn move_left(self) -> Coordinates {
+    pub fn get_left(self) -> Coordinates {
         Coordinates {
             x: self.x - 1,
             ..self
