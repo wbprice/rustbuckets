@@ -6,8 +6,8 @@ use termion::raw::IntoRawMode;
 
 use crate::{
     controllers::Mode,
-    models::{Board, Coordinates, Cursor, Game, Heading, Label, Ship},
-    views::{BoardView, CursorView, LabelView, ShipView},
+    models::{Board, Coordinates, Cursor, Game, Heading, Label, Ship, Attack},
+    views::{BoardView, CursorView, LabelView, ShipView, AttackView},
 };
 
 pub fn game_controller(game: &mut Game) {
@@ -38,6 +38,7 @@ pub fn game_controller(game: &mut Game) {
     let blue_board_title_view = LabelView::new(Coordinates { x: 1, y: 22 }, blue_board_title);
     let blue_board_view = BoardView::new(Coordinates { x: 1, y: 23 }, blue_board);
     let mut blue_ship_views: Vec<ShipView> = vec![];
+    let mut blue_attack_views: Vec<AttackView> = vec![];
     for ship in game.blue_ships.iter() {
         blue_ship_views.push(ShipView::new(
             Coordinates {
@@ -83,6 +84,14 @@ pub fn game_controller(game: &mut Game) {
             Key::Char('d') => {
                 cursor = cursor.move_right();
                 cursor_view = cursor_view.update(cursor);
+            },
+            Key::Char('f') => {
+                match game.place_attack(cursor.origin) {
+                    Ok(_) => {},
+                    Err(_) => {
+                        // handle err
+                    }
+                }
             }
             _ => {}
         }
