@@ -1,5 +1,5 @@
 use crate::{
-    controllers::{setup_controller, title_controller, Mode},
+    controllers::{game_controller, setup_controller, title_controller, Mode},
     models::{Attack, AttackResult, Coordinates, Faction, Heading, Scores, Ship},
 };
 use rand::{random, thread_rng, Rng};
@@ -253,11 +253,7 @@ impl Game {
             match &self.mode {
                 Mode::Title => title_controller(self),
                 Mode::Setup => setup_controller(self),
-                Mode::Play => {
-                    println!("hello play screen");
-                    dbg!(&self);
-                    self.switch_mode(Mode::Endscreen);
-                }
+                Mode::Play => game_controller(self),
                 Mode::Endscreen => {
                     println!("hello endscreen");
                     break;
