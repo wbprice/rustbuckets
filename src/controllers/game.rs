@@ -6,8 +6,8 @@ use termion::raw::IntoRawMode;
 
 use crate::{
     controllers::Mode,
-    models::{Board, Coordinates, Game, Heading, Label, Ship},
-    views::{BoardView, LabelView, ShipView},
+    models::{Board, Coordinates, Game, Heading, Label, Ship, Cursor},
+    views::{BoardView, LabelView, ShipView, CursorView},
 };
 
 pub fn game_controller(game: &mut Game) {
@@ -29,6 +29,7 @@ pub fn game_controller(game: &mut Game) {
     let blue_board_title = Label::new("Blue Team".to_string());
     let red_board = Board::new(game.width, game.height);
     let blue_board = Board::new(game.width, game.height);
+    let cursor = Cursor::default();
 
     // Views
     let title_view = LabelView::new(Coordinates { x: 1, y: 1 }, title);
@@ -46,6 +47,7 @@ pub fn game_controller(game: &mut Game) {
             ship.clone(),
         ))
     }
+    let cursor_view = CursorView::new(blue_board_view.origin, cursor);
 
     // Initial render
     title_view.render(&mut stdout);
