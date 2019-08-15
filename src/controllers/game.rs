@@ -47,7 +47,7 @@ pub fn game_controller(game: &mut Game) {
             ship.clone(),
         ))
     }
-    let cursor_view = CursorView::new(blue_board_view.origin, cursor);
+    let cursor_view = CursorView::new(red_board_view.origin, cursor);
 
     // Initial render
     title_view.render(&mut stdout);
@@ -58,6 +58,7 @@ pub fn game_controller(game: &mut Game) {
     for ship_view in blue_ship_views.iter() {
         ship_view.render(&mut stdout);
     }
+    cursor_view.render(&mut stdout);
 
     stdout.flush().unwrap();
 
