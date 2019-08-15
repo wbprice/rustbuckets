@@ -1,71 +1,40 @@
 use crate::models::{Coordinates, Heading};
 
-#[derive(Debug, Default, Copy, Clone)]
-pub struct ShipSegment {
-    pub coordinates: Coordinates,
-}
-
-impl ShipSegment {
-    pub fn new(coordinates: Coordinates) -> ShipSegment {
-        ShipSegment { coordinates }
-    }
-}
-
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub struct Ship {
     pub origin: Coordinates,
     pub heading: Heading,
-    pub length: u16,
-    pub segments: Vec<ShipSegment>,
+    pub length: u16
 }
 
 impl Ship {
     pub fn new(origin: Coordinates, heading: Heading, length: u16) -> Ship {
-        // Create N segments in the heading of the boat.
-        let mut segments: Vec<ShipSegment> = vec![];
-        for n in 0..length {
-            match heading {
-                Heading::East => segments.push(ShipSegment::new(Coordinates {
-                    x: origin.x + n,
-                    y: origin.y,
-                })),
-                Heading::South => segments.push(ShipSegment::new(Coordinates {
-                    x: origin.x,
-                    y: origin.y + n,
-                })),
-            }
-        }
-
         Ship {
             origin,
             heading,
-            length,
-            segments,
+            length
         }
+    }
+
+    pub fn get_segment_coordinates(&self) -> Vec<Coordinates> {
+        let mut segments : Vec<Coordinates> = vec![];
+        for n in 0..self.length {
+            match self.heading {
+                Heading::East => segments.push(Coordinates {
+                    x: self.origin.x + n,
+                    y: self.origin.y,
+                }),
+                Heading::South => segments.push(Coordinates {
+                    x: self.origin.x,
+                    y: self.origin.y + n,
+                })
+            }
+        }
+        segments
     }
 
     pub fn default() -> Ship {
         Ship::new(Coordinates::default(), Heading::default(), 2)
-    }
-
-    pub fn move_up(&self) -> Ship {
-        let ship = self.clone();
-        Ship {
-            origin: Coordinates {
-                y: ship.origin.y - 1,
-                ..ship.origin
-            },
-            ..ship
-        }
-    }
-}
-
-impl Clone for Ship {
-    fn clone(&self) -> Ship {
-        Ship {
-            segments: self.segments.clone(),
-            ..*self
-        }
     }
 }
 
@@ -76,20 +45,18 @@ mod test {
     #[test]
     fn test_new_ship() {
         let ship = Ship::new(Coordinates { x: 0, y: 0 }, Heading::East, 2);
-
         assert_eq!(ship.origin.x, 0);
         assert_eq!(ship.origin.y, 0);
         assert_eq!(ship.heading, Heading::East);
-        assert_eq!(ship.segments[0].coordinates.x, 0);
-        assert_eq!(ship.segments[0].coordinates.y, 0);
-        assert_eq!(ship.segments[1].coordinates.x, 1);
-        assert_eq!(ship.segments[1].coordinates.y, 0);
     }
 
     #[test]
-    fn test_new_ship_segment() {
-        let ship_segment = ShipSegment::new(Coordinates { x: 0, y: 0 });
-        assert_eq!(ship_segment.coordinates.x, 0);
-        assert_eq!(ship_segment.coordinates.y, 0);
+    fn test_get_segment_coordinates() {
+        let ship = Ship::new(Coordinates { x: 0, y: 0 }, Heading::East, 2);
+        let segments = ship.get_segment_coordinates();
+        assert_eq!(segments[0].x, 0);
+        assert_eq!(segments[0].y, 0);
+        assert_eq!(segments[1].x, 1);
+        assert_eq!(segments[1].y, 0);
     }
 }

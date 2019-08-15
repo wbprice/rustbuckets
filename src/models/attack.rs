@@ -9,9 +9,8 @@ pub struct Attack {
 impl Attack {
     pub fn new(ships: &Vec<Ship>, coordinates: Coordinates) -> Attack {
         for ship in ships.iter() {
-            for ship_segment in ship.segments.iter() {
-                if ship_segment.coordinates.x == coordinates.x
-                    && ship_segment.coordinates.y == coordinates.y
+            for coords in ship.get_segment_coordinates().into_iter() {
+                if coords.x == coordinates.x && coords.y == coordinates.y
                 {
                     return Attack {
                         coordinates,

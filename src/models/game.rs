@@ -217,8 +217,8 @@ impl Game {
     }
 
     fn should_place_ship(&self, ships: &Vec<Ship>, ship: &Ship) -> bool {
-        for ship_segment in ship.segments.iter() {
-            if self.is_ship_at_coordinates(&ships, &ship_segment.coordinates) {
+        for coordinates in ship.get_segment_coordinates().iter() {
+            if self.is_ship_at_coordinates(&ships, coordinates) {
                 return false;
             }
         }
@@ -239,9 +239,9 @@ impl Game {
 
     fn is_ship_at_coordinates(&self, ships: &Vec<Ship>, coordinates: &Coordinates) -> bool {
         for ship in ships.iter() {
-            for ship_segment in ship.segments.iter() {
-                if ship_segment.coordinates.x == coordinates.x
-                    && ship_segment.coordinates.y == coordinates.y
+            for coords in ship.get_segment_coordinates().iter() {
+                if coords.x == coordinates.x
+                    && coords.y == coordinates.y
                 {
                     return true;
                 }
