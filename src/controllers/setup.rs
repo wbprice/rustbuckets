@@ -73,7 +73,7 @@ pub fn setup_controller(game: &mut Game) {
 
     // Preamble for letting players place their own ships
     let mut ship_lengths_to_place = vec![2, 2, 3, 4, 5];
-    let mut new_ship_length = ship_lengths_to_place.pop().unwrap();
+    let new_ship_length = ship_lengths_to_place.pop().unwrap();
     let mut new_ship = Ship {
         length: new_ship_length,
         ..Ship::default()
@@ -138,7 +138,7 @@ pub fn setup_controller(game: &mut Game) {
             Key::Char('d') => {
                 let should_move = match new_ship.heading {
                     Heading::South => 1 + new_ship.origin.y < game.height,
-                    Heading::East => new_ship_length + new_ship.origin.x < game.height,
+                    Heading::East => new_ship.length + new_ship.origin.x < game.height,
                 };
 
                 if should_move {
