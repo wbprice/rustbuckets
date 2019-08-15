@@ -47,15 +47,24 @@ impl Ship {
     pub fn default() -> Ship {
         Ship::new(Coordinates::default(), Heading::default(), 2)
     }
+
+    pub fn move_up(&self) -> Ship {
+        let ship = self.clone();
+        Ship {
+            origin: Coordinates {
+                y: ship.origin.y - 1,
+                ..ship.origin
+            },
+            ..ship
+        }
+    }
 }
 
 impl Clone for Ship {
     fn clone(&self) -> Ship {
         Ship {
-            origin: self.origin,
-            heading: self.heading,
-            length: self.length,
             segments: self.segments.clone(),
+            ..*self
         }
     }
 }
