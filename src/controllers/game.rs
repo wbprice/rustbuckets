@@ -98,11 +98,23 @@ pub fn game_controller(game: &mut Game) {
                         // Attack placed.  Now it's time for the
                         // AI to retaliate.
                         game.toggle_active_player();
-                        let ai_attack_coords = game
-                            .auto_select_origin()
-                            .expect("Couldn't select an origin!");
-                        game.place_attack(ai_attack_coords)
-                            .expect("Couldn't place attack!");
+
+                        loop {
+                            let ai_attack_coords = game
+                                .auto_select_origin()
+                                .expect("Couldn't select an origin!");
+
+                            match game.place_attack(ai_attack_coords) {
+                                Ok(_) => {
+                                    break
+                                },
+                                Err(_) => {
+                                    // Do something with the error
+                                }
+                            }
+
+                        }
+
                         game.toggle_active_player();
                     }
                     Err(_) => {
