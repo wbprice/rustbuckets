@@ -69,20 +69,28 @@ pub fn game_controller(game: &mut Game) {
                 break;
             }
             Key::Char('w') => {
-                cursor = cursor.move_up();
-                cursor_view = cursor_view.update(cursor);
+                if cursor.origin.y > 0 {
+                    cursor = cursor.move_up();
+                    cursor_view = cursor_view.update(cursor);
+                }
             }
             Key::Char('a') => {
-                cursor = cursor.move_left();
-                cursor_view = cursor_view.update(cursor);
+                if cursor.origin.x > 0 {
+                    cursor = cursor.move_left();
+                    cursor_view = cursor_view.update(cursor);
+                }
             }
             Key::Char('s') => {
-                cursor = cursor.move_down();
-                cursor_view = cursor_view.update(cursor);
+                if cursor.origin.y < game.height - 1 {
+                    cursor = cursor.move_down();
+                    cursor_view = cursor_view.update(cursor);
+                }
             }
             Key::Char('d') => {
-                cursor = cursor.move_right();
-                cursor_view = cursor_view.update(cursor);
+                if cursor.origin.x < game.width - 1 {
+                    cursor = cursor.move_right();
+                    cursor_view = cursor_view.update(cursor);
+                }
             },
             Key::Char('f') => {
                 match game.place_attack(cursor.origin) {
