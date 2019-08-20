@@ -95,16 +95,6 @@ pub fn game_controller(game: &mut Game) {
             _ => {}
         }
 
-        // Populate attack views list with attacks.
-        for attack in game.blue_attacks.clone().into_iter() {
-            let attack_view = AttackView::new(blue_board_view.origin, attack);
-            attack_view.render(&mut stdout);
-        }
-        for attack in game.red_attacks.clone().into_iter() {
-            let attack_view = AttackView::new(red_board_view.origin, attack);
-            attack_view.render(&mut stdout);
-        }
-
         // Rerender
         title_view.render(&mut stdout);
         red_board_title_view.render(&mut stdout);
@@ -113,6 +103,15 @@ pub fn game_controller(game: &mut Game) {
         blue_board_view.render(&mut stdout);
         for ship_view in blue_ship_views.iter() {
             ship_view.render(&mut stdout);
+        }
+        // Populate attack views list with attacks and render.
+        for attack in game.blue_attacks.clone().into_iter() {
+            let attack_view = AttackView::new(blue_board_view.origin, attack);
+            attack_view.render(&mut stdout);
+        }
+        for attack in game.red_attacks.clone().into_iter() {
+            let attack_view = AttackView::new(red_board_view.origin, attack);
+            attack_view.render(&mut stdout);
         }
         cursor_view.render(&mut stdout);
 
