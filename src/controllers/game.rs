@@ -6,8 +6,8 @@ use termion::raw::IntoRawMode;
 
 use crate::{
     controllers::Mode,
-    models::{Board, Coordinates, Cursor, Game, Heading, Label, Ship, Attack},
-    views::{BoardView, CursorView, LabelView, ShipView, AttackView},
+    models::{Attack, Board, Coordinates, Cursor, Game, Heading, Label, Ship},
+    views::{AttackView, BoardView, CursorView, LabelView, ShipView},
 };
 
 pub fn game_controller(game: &mut Game) {
@@ -91,10 +91,20 @@ pub fn game_controller(game: &mut Game) {
                     cursor = cursor.move_right();
                     cursor_view = cursor_view.update(cursor);
                 }
-            },
+            }
             Key::Char('f') => {
                 match game.place_attack(cursor.origin) {
-                    Ok(_) => {},
+                    Ok(_) => {
+                        // Attack placed.  Now it's time for the
+                        // AI to retaliate.
+                        game.toggle_active_player();
+                        let ai_attack_coords = game
+                            .auto_select_origin()
+                            .expect("Couldn't select an origin!");
+                        game.place_attack(ai_attack_coords)
+                            .expect("Couldn't place attack!");
+                        game.toggle_active_player();
+                    }
                     Err(_) => {
                         // handle err
                     }

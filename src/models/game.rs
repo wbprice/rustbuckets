@@ -90,7 +90,7 @@ impl Game {
         }
     }
 
-    fn auto_select_origin(&self) -> Result<Coordinates, &str> {
+    pub fn auto_select_origin(&self) -> Result<Coordinates, &str> {
         for _ in 0..self.width * self.height {
             let mut rng = thread_rng();
             let origin = Coordinates {
