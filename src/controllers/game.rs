@@ -6,8 +6,8 @@ use termion::raw::IntoRawMode;
 
 use crate::{
     controllers::Mode,
-    models::{Attack, Board, Coordinates, Cursor, Game, Heading, Label, Ship, Scores},
-    views::{AttackView, BoardView, CursorView, LabelView, ShipView, ScoresView},
+    models::{Attack, Board, Coordinates, Cursor, Game, Heading, Label, Scores, Ship},
+    views::{AttackView, BoardView, CursorView, LabelView, ScoresView, ShipView},
 };
 
 pub fn game_controller(game: &mut Game) {
@@ -109,14 +109,11 @@ pub fn game_controller(game: &mut Game) {
                                 .expect("Couldn't select an origin!");
 
                             match game.place_attack(ai_attack_coords) {
-                                Ok(_) => {
-                                    break
-                                },
+                                Ok(_) => break,
                                 Err(_) => {
                                     // Do something with the error
                                 }
                             }
-
                         }
 
                         game.toggle_active_player();

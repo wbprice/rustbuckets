@@ -1,9 +1,4 @@
-use crate::{
-    models::{
-        Coordinates,
-        Scores
-    }
-};
+use crate::models::{Coordinates, Scores};
 use std::io::{Stdout, Write};
 use termion::cursor::Goto;
 use termion::raw::RawTerminal;
@@ -11,7 +6,7 @@ use termion::{color, style};
 
 pub struct ScoresView {
     origin: Coordinates,
-    model: Scores
+    model: Scores,
 }
 
 impl ScoresView {
@@ -34,6 +29,7 @@ impl ScoresView {
             Goto(self.origin.x, self.origin.y + 6),
             self.model.misses,
             style::Reset
-        ).unwrap();
+        )
+        .unwrap();
     }
 }
