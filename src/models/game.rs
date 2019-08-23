@@ -47,7 +47,7 @@ impl Game {
         self.mode = mode;
     }
 
-    fn increment_hits(&mut self) {
+    pub fn increment_hits(&mut self) {
         match self.active_player {
             Faction::Blue => {
                 self.blue_score.hits += 1;
@@ -58,7 +58,7 @@ impl Game {
         }
     }
 
-    fn increment_misses(&mut self) {
+    pub fn increment_misses(&mut self) {
         match self.active_player {
             Faction::Blue => {
                 self.blue_score.misses += 1;

@@ -6,8 +6,8 @@ use termion::raw::IntoRawMode;
 
 use crate::{
     controllers::Mode,
-    models::{Attack, Board, Coordinates, Cursor, Game, Heading, Label, Ship},
-    views::{AttackView, BoardView, CursorView, LabelView, ShipView},
+    models::{Attack, Board, Coordinates, Cursor, Game, Heading, Label, Ship, Scores},
+    views::{AttackView, BoardView, CursorView, LabelView, ShipView, ScoresView},
 };
 
 pub fn game_controller(game: &mut Game) {
@@ -38,6 +38,8 @@ pub fn game_controller(game: &mut Game) {
     let blue_board_title_view = LabelView::new(Coordinates { x: 1, y: 22 }, blue_board_title);
     let blue_board_view = BoardView::new(Coordinates { x: 1, y: 23 }, blue_board);
     let mut blue_ship_views: Vec<ShipView> = vec![];
+    let mut red_team_score_view = ScoresView::new(Coordinates { x: 36, y: 0 }, game.blue_score);
+    let mut blue_team_score_view = ScoresView::new(Coordinates { x: 36, y: 19 }, game.red_score);
     for ship in game.blue_ships.iter() {
         blue_ship_views.push(ShipView::new(
             Coordinates {
@@ -55,6 +57,8 @@ pub fn game_controller(game: &mut Game) {
     red_board_view.render(&mut stdout);
     blue_board_title_view.render(&mut stdout);
     blue_board_view.render(&mut stdout);
+    red_team_score_view.render(&mut stdout);
+    blue_team_score_view.render(&mut stdout);
     for ship_view in blue_ship_views.iter() {
         ship_view.render(&mut stdout);
     }
@@ -125,12 +129,18 @@ pub fn game_controller(game: &mut Game) {
             _ => {}
         }
 
+        // Update score views
+        red_team_score_view = red_team_score_view.update(game.blue_score);
+        blue_team_score_view = blue_team_score_view.update(game.red_score);
+
         // Rerender
         title_view.render(&mut stdout);
         red_board_title_view.render(&mut stdout);
         red_board_view.render(&mut stdout);
         blue_board_title_view.render(&mut stdout);
         blue_board_view.render(&mut stdout);
+        red_team_score_view.render(&mut stdout);
+        blue_team_score_view.render(&mut stdout);
         for ship_view in blue_ship_views.iter() {
             ship_view.render(&mut stdout);
         }

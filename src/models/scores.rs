@@ -1,6 +1,5 @@
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Copy, Clone)]
 pub struct Scores {
     pub hits: u16,
-    pub misses: u16,
-    pub label: String
+    pub misses: u16
 }

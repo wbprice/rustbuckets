@@ -6,8 +6,8 @@ use termion::raw::IntoRawMode;
 
 use crate::{
     controllers::Mode,
-    models::{Board, Coordinates, Game, Heading, Label, Ship},
-    views::{BoardView, LabelView, ShipView},
+    models::{Board, Coordinates, Game, Heading, Label, Ship, Scores},
+    views::{BoardView, LabelView, ShipView, ScoresView},
 };
 
 pub fn setup_controller(game: &mut Game) {
@@ -51,6 +51,8 @@ pub fn setup_controller(game: &mut Game) {
     let blue_board_view = BoardView::new(Coordinates { x: 1, y: 23 }, blue_board);
     let mut red_ship_views: Vec<ShipView> = vec![];
     let mut blue_ship_views: Vec<ShipView> = vec![];
+    let red_team_score_view = ScoresView::new(Coordinates { x: 36, y: 0 }, game.red_score);
+    let blue_team_score_view = ScoresView::new(Coordinates { x: 36, y: 19 }, game.blue_score);
     for ship in game.red_ships.iter() {
         red_ship_views.push(ShipView::new(
             Coordinates {
@@ -67,6 +69,8 @@ pub fn setup_controller(game: &mut Game) {
     red_board_view.render(&mut stdout);
     blue_board_title_view.render(&mut stdout);
     blue_board_view.render(&mut stdout);
+    red_team_score_view.render(&mut stdout);
+    blue_team_score_view.render(&mut stdout);
     for ship_view in red_ship_views.iter() {
         ship_view.render(&mut stdout);
     }
@@ -159,6 +163,8 @@ pub fn setup_controller(game: &mut Game) {
         red_board_view.render(&mut stdout);
         blue_board_title_view.render(&mut stdout);
         blue_board_view.render(&mut stdout);
+        red_team_score_view.render(&mut stdout);
+        blue_team_score_view.render(&mut stdout);
         for ship_view in red_ship_views.iter() {
             ship_view.render(&mut stdout);
         }

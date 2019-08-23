@@ -26,10 +26,8 @@ impl ScoresView {
     pub fn render(&self, stdout: &mut RawTerminal<Stdout>) {
         writeln!(
             stdout,
-            "{}{}{}{}{}Hits: {}{}Misses: {}{}",
+            "{}{}{}Hits: {}{}Misses: {}{}",
             Goto(self.origin.x, self.origin.y + 4),
-            color::Fg(color::Red),
-            self.model.label.to_string(),
             color::Fg(color::White),
             Goto(self.origin.x, self.origin.y + 5),
             self.model.hits,
