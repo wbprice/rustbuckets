@@ -111,7 +111,7 @@ pub fn game_controller(game: &mut Game) {
                             match game.place_attack(ai_attack_coords) {
                                 Ok(_) => break,
                                 Err(_) => {
-                                    // Do something with the error
+                                    // handle err?
                                 }
                             }
                         }
@@ -120,6 +120,7 @@ pub fn game_controller(game: &mut Game) {
                     }
                     Err(_) => {
                         // handle err
+
                     }
                 }
             }
@@ -127,7 +128,7 @@ pub fn game_controller(game: &mut Game) {
         }
 
         // Was there a win?
-        if game.blue_score.hits >= 17 || game.red_score.hits >= 17 {
+        if game.blue_score.hits >= 16 || game.red_score.hits >= 16 {
             game.switch_mode(Mode::Endscreen);
             break;
         }
