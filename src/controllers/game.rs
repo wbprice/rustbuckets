@@ -126,6 +126,12 @@ pub fn game_controller(game: &mut Game) {
             _ => {}
         }
 
+        // Was there a win?
+        if game.blue_score.hits >= 17 || game.red_score.hits >= 17 {
+            game.switch_mode(Mode::Endscreen);
+            break;
+        }
+
         // Update score views
         red_team_score_view = red_team_score_view.update(game.blue_score);
         blue_team_score_view = blue_team_score_view.update(game.red_score);

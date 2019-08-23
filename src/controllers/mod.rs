@@ -5,6 +5,6 @@ mod setup;
 mod title;
 
 pub use self::{
-    endscreen::endscreen, game::game_controller, mode::Mode, setup::setup_controller,
+    endscreen::endscreen_controller, game::game_controller, mode::Mode, setup::setup_controller,
     title::title_controller,
 };
