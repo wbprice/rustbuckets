@@ -1,10 +1,13 @@
 use crate::{
-    views::utils::{translate_game_coords_to_board_coords},
     models::{
         Coordinates,
         Scores
     }
 };
+use std::io::{Stdout, Write};
+use termion::cursor::Goto;
+use termion::raw::RawTerminal;
+use termion::{color, style};
 
 pub struct ScoresView {
     origin: Coordinates,
@@ -26,13 +29,13 @@ impl ScoresView {
             "{}{}{}{}{}Hits: {}{}Misses: {}{}",
             Goto(self.origin.x, self.origin.y + 4),
             color::Fg(color::Red),
-            "Red Team".to_string(),
+            self.model.label.to_string(),
             color::Fg(color::White),
             Goto(self.origin.x, self.origin.y + 5),
-            self.red_score.hits,
+            self.model.hits,
             Goto(self.origin.x, self.origin.y + 6),
-            self.red_score.misses,
+            self.model.misses,
             style::Reset
-        )
+        ).unwrap();
     }
 }
