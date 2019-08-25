@@ -48,7 +48,7 @@ pub fn setup_controller(game: &mut Game) {
     let title_view = LabelView::new(Coordinates { x: 1, y: 1 }, title);
     let red_board_title_view = LabelView::new(Coordinates { x: 1, y: 3 }, red_board_title);
     let red_board_view = BoardView::new(Coordinates { x: 1, y: 4 }, red_board);
-    let alert_view = AlertView::new(Coordinates { x: 1, y: 23}, alert);
+    let mut alert_view = AlertView::new(Coordinates { x: 1, y: 23}, alert);
     let blue_board_title_view = LabelView::new(Coordinates { x: 1, y: 27 }, blue_board_title);
     let blue_board_view = BoardView::new(Coordinates { x: 1, y: 28 }, blue_board);
     let mut red_ship_views: Vec<ShipView> = vec![];
@@ -97,6 +97,12 @@ pub fn setup_controller(game: &mut Game) {
                 match game.place_ship(new_ship) {
                     Ok(_) => match ship_lengths_to_place.pop() {
                         Some(length) => {
+                            alert_view = alert_view.update(Alert::new(
+                                format!("Place a ship with length: {}!", length),
+                                Level::Info
+                            ));
+                            alert_view.render(&mut stdout);
+                            stdout.flush().unwrap();
                             blue_ship_views.push(ShipView::new(blue_board_view.origin, new_ship));
 
                             new_ship = Ship {
@@ -111,6 +117,12 @@ pub fn setup_controller(game: &mut Game) {
                         }
                     },
                     Err(_) => {
+                        alert_view = alert_view.update(Alert::new(
+                            "You can't place a ship there!".to_string(),
+                            Level::Warning
+                        ));
+                        alert_view.render(&mut stdout);
+                        stdout.flush().unwrap();
                         // handle err
                     }
                 }
