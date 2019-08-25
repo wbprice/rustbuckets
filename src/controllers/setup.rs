@@ -29,7 +29,7 @@ pub fn setup_controller(game: &mut Game) {
     let blue_board_title = Label::new("Blue Team".to_string());
     let red_board = Board::new(game.width, game.height);
     let blue_board = Board::new(game.width, game.height);
-    let alert = Alert::new("Place your ships".to_string(), Level::Info);
+    let alert = Alert::new("Blue Cmdr, place your ships!".to_string(), Level::Info);
 
     // Setup AI ships
     // Toggle to red player
@@ -48,13 +48,13 @@ pub fn setup_controller(game: &mut Game) {
     let title_view = LabelView::new(Coordinates { x: 1, y: 1 }, title);
     let red_board_title_view = LabelView::new(Coordinates { x: 1, y: 3 }, red_board_title);
     let red_board_view = BoardView::new(Coordinates { x: 1, y: 4 }, red_board);
-    let blue_board_title_view = LabelView::new(Coordinates { x: 1, y: 24 }, blue_board_title);
-    let blue_board_view = BoardView::new(Coordinates { x: 1, y: 25 }, blue_board);
+    let alert_view = AlertView::new(Coordinates { x: 1, y: 23}, alert);
+    let blue_board_title_view = LabelView::new(Coordinates { x: 1, y: 27 }, blue_board_title);
+    let blue_board_view = BoardView::new(Coordinates { x: 1, y: 28 }, blue_board);
     let mut red_ship_views: Vec<ShipView> = vec![];
     let mut blue_ship_views: Vec<ShipView> = vec![];
     let red_team_score_view = ScoresView::new(Coordinates { x: 36, y: 0 }, game.red_score);
-    let blue_team_score_view = ScoresView::new(Coordinates { x: 36, y: 19 }, game.blue_score);
-    let alert_view = AlertView::new(Coordinates { x: 1, y: 23}, alert);
+    let blue_team_score_view = ScoresView::new(Coordinates { x: 36, y: 24 }, game.blue_score);
     for ship in game.red_ships.iter() {
         red_ship_views.push(ShipView::new(
             Coordinates {
