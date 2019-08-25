@@ -7,7 +7,8 @@ A Battleship-style game implemented in Rust.
 cargo run
 ```
 
-![Screen Shot 2019-08-01 at 4 18 29 PM](https://user-images.githubusercontent.com/2590422/62324671-04232c80-b478-11e9-857e-102f0adfe4fd.png)
+<img width="346" alt="Screen Shot 2019-08-25 at 12 58 01 AM" src="https://user-images.githubusercontent.com/2590422/63645772-84355e80-c6d3-11e9-816e-d9008017b98c.png">
+
 
 ### Keys
 
