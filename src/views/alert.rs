@@ -8,7 +8,7 @@ use crate::{
 use std::io::{Stdout, Write};
 use termion::cursor::Goto;
 use termion::raw::RawTerminal;
-use termion::{color, style};
+use termion::{color, style, clear};
 
 pub struct AlertView {
     pub origin: Coordinates,
@@ -55,6 +55,16 @@ impl AlertView {
             Level::Warning => color::Fg(color::Yellow).to_string(),
             Level::Error => color::Fg(color::Red).to_string()
         };
+
+        write!(
+            stdout,
+            "{}{}{}{}{}",
+            Goto(self.origin.x, self.origin.y),
+            clear::CurrentLine,
+            Goto(self.origin.x, self.origin.y + 1),
+            clear::CurrentLine,
+            Goto(self.origin.x, self.origin.y + 2)
+        ).unwrap();
 
         write!(
             stdout,
