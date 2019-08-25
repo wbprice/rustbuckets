@@ -1,42 +1,27 @@
-use crate::{
-    models::{
-        Coordinates,
-        Alert,
-        Level
-    }
-};
+use crate::models::{Alert, Coordinates, Level};
 use std::io::{Stdout, Write};
 use termion::cursor::Goto;
 use termion::raw::RawTerminal;
-use termion::{color, style, clear};
+use termion::{clear, color, style};
 
 pub struct AlertView {
     pub origin: Coordinates,
-    pub model: Alert
+    pub model: Alert,
 }
 
 impl AlertView {
     pub fn new(origin: Coordinates, model: Alert) -> AlertView {
-        AlertView {
-            origin,
-            model
-        }
+        AlertView { origin, model }
     }
 
     pub fn update(self, model: Alert) -> AlertView {
-        AlertView {
-            model,
-            ..self
-        }
+        AlertView { model, ..self }
     }
 
     fn draw_horizontal_edge(&self) -> String {
-        let line : String = (1..48).map(|_| "-").collect();
+        let line: String = (1..48).map(|_| "-").collect();
 
-        format!(
-            "{}",
-            line
-        )
+        format!("{}", line)
     }
 
     pub fn render(&self, stdout: &mut RawTerminal<Stdout>) {
@@ -45,7 +30,7 @@ impl AlertView {
             Level::Info => "INFO",
             Level::Success => "SUCCESS",
             Level::Warning => "WARNING",
-            Level::Error => "ERROR"
+            Level::Error => "ERROR",
         };
 
         // WTF
@@ -53,7 +38,7 @@ impl AlertView {
             Level::Info => color::Fg(color::Cyan).to_string(),
             Level::Success => color::Fg(color::Green).to_string(),
             Level::Warning => color::Fg(color::Yellow).to_string(),
-            Level::Error => color::Fg(color::Red).to_string()
+            Level::Error => color::Fg(color::Red).to_string(),
         };
 
         write!(
@@ -64,7 +49,8 @@ impl AlertView {
             Goto(self.origin.x, self.origin.y + 1),
             clear::CurrentLine,
             Goto(self.origin.x, self.origin.y + 2)
-        ).unwrap();
+        )
+        .unwrap();
 
         write!(
             stdout,
@@ -77,6 +63,7 @@ impl AlertView {
             Goto(self.origin.x, self.origin.y + 2),
             self.draw_horizontal_edge(),
             style::Reset
-        ).unwrap();
+        )
+        .unwrap();
     }
 }

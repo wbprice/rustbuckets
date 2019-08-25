@@ -6,8 +6,8 @@ use termion::raw::IntoRawMode;
 
 use crate::{
     controllers::Mode,
-    models::{Board, Coordinates, Game, Heading, Label, Alert, Level, Ship},
-    views::{BoardView, LabelView, ScoresView, ShipView, AlertView},
+    models::{Alert, Board, Coordinates, Game, Heading, Label, Level, Ship},
+    views::{AlertView, BoardView, LabelView, ScoresView, ShipView},
 };
 
 pub fn setup_controller(game: &mut Game) {
@@ -48,7 +48,7 @@ pub fn setup_controller(game: &mut Game) {
     let title_view = LabelView::new(Coordinates { x: 1, y: 1 }, title);
     let red_board_title_view = LabelView::new(Coordinates { x: 1, y: 3 }, red_board_title);
     let red_board_view = BoardView::new(Coordinates { x: 1, y: 4 }, red_board);
-    let mut alert_view = AlertView::new(Coordinates { x: 1, y: 23}, alert);
+    let mut alert_view = AlertView::new(Coordinates { x: 1, y: 23 }, alert);
     let blue_board_title_view = LabelView::new(Coordinates { x: 1, y: 27 }, blue_board_title);
     let blue_board_view = BoardView::new(Coordinates { x: 1, y: 28 }, blue_board);
     let mut red_ship_views: Vec<ShipView> = vec![];
@@ -99,7 +99,7 @@ pub fn setup_controller(game: &mut Game) {
                         Some(length) => {
                             alert_view = alert_view.update(Alert::new(
                                 format!("Place a ship with length: {}!", length),
-                                Level::Info
+                                Level::Info,
                             ));
                             alert_view.render(&mut stdout);
                             stdout.flush().unwrap();
@@ -119,7 +119,7 @@ pub fn setup_controller(game: &mut Game) {
                     Err(_) => {
                         alert_view = alert_view.update(Alert::new(
                             "You can't place a ship there!".to_string(),
-                            Level::Warning
+                            Level::Warning,
                         ));
                         alert_view.render(&mut stdout);
                         stdout.flush().unwrap();

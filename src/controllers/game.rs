@@ -1,14 +1,17 @@
 use std::io::{stdin, stdout, Write};
+use std::{thread, time};
 use termion::cursor::Goto;
 use termion::event::Key;
 use termion::input::TermRead;
 use termion::raw::IntoRawMode;
-use std::{thread, time};
 
 use crate::{
     controllers::Mode,
-    models::{Attack, AttackResult, Board, Coordinates, Cursor, Game, Heading, Label, Scores, Ship, Level, Alert},
-    views::{AttackView, AlertView, BoardView, CursorView, LabelView, ScoresView, ShipView},
+    models::{
+        Alert, Attack, AttackResult, Board, Coordinates, Cursor, Game, Heading, Label, Level,
+        Scores, Ship,
+    },
+    views::{AlertView, AttackView, BoardView, CursorView, LabelView, ScoresView, ShipView},
 };
 
 fn simulate_thought() {
@@ -43,7 +46,7 @@ pub fn game_controller(game: &mut Game) {
     let title_view = LabelView::new(Coordinates { x: 1, y: 1 }, title);
     let red_board_title_view = LabelView::new(Coordinates { x: 1, y: 3 }, red_board_title);
     let red_board_view = BoardView::new(Coordinates { x: 1, y: 4 }, red_board);
-    let mut blue_instructions_view = AlertView::new(Coordinates { x: 1, y: 23}, blue_instructions);
+    let mut blue_instructions_view = AlertView::new(Coordinates { x: 1, y: 23 }, blue_instructions);
     let blue_board_title_view = LabelView::new(Coordinates { x: 1, y: 27 }, blue_board_title);
     let blue_board_view = BoardView::new(Coordinates { x: 1, y: 28 }, blue_board);
     let mut blue_ship_views: Vec<ShipView> = vec![];
@@ -113,14 +116,12 @@ pub fn game_controller(game: &mut Game) {
                             AttackResult::Hit => {
                                 blue_instructions_view = blue_instructions_view.update(Alert::new(
                                     "That was a hit!".to_string(),
-                                    Level::Success
+                                    Level::Success,
                                 ));
-                            },
+                            }
                             AttackResult::Miss => {
-                                blue_instructions_view = blue_instructions_view.update(Alert::new(
-                                    "You missed!".to_string(),
-                                    Level::Warning
-                                ));
+                                blue_instructions_view = blue_instructions_view
+                                    .update(Alert::new("You missed!".to_string(), Level::Warning));
                             }
                         }
                         blue_instructions_view.render(&mut stdout);
@@ -141,16 +142,16 @@ pub fn game_controller(game: &mut Game) {
                                 Ok(attack) => {
                                     match attack.result {
                                         AttackResult::Hit => {
-                                            blue_instructions_view = blue_instructions_view.update(Alert::new(
-                                                "They hit a ship!".to_string(),
-                                                Level::Warning
-                                            ));
-                                        },
+                                            blue_instructions_view =
+                                                blue_instructions_view.update(Alert::new(
+                                                    "They hit a ship!".to_string(),
+                                                    Level::Warning,
+                                                ));
+                                        }
                                         AttackResult::Miss => {
-                                            blue_instructions_view = blue_instructions_view.update(Alert::new(
-                                                "They missed!".to_string(),
-                                                Level::Info
-                                            ));
+                                            blue_instructions_view = blue_instructions_view.update(
+                                                Alert::new("They missed!".to_string(), Level::Info),
+                                            );
                                         }
                                     }
 
@@ -158,7 +159,7 @@ pub fn game_controller(game: &mut Game) {
                                     stdout.flush().unwrap();
 
                                     break;
-                                },
+                                }
                                 Err(_) => {
                                     // handle err?
                                 }
@@ -168,7 +169,7 @@ pub fn game_controller(game: &mut Game) {
                         simulate_thought();
                         blue_instructions_view = blue_instructions_view.update(Alert::new(
                             "Select a cell to attack!".to_string(),
-                            Level::Info
+                            Level::Info,
                         ));
                         blue_instructions_view.render(&mut stdout);
                         stdout.flush().unwrap();
