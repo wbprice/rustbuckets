@@ -175,7 +175,7 @@ impl Game {
         return true;
     }
 
-    pub fn place_attack(&mut self, coordinates: Coordinates) -> Result<(), &str> {
+    pub fn place_attack(&mut self, coordinates: Coordinates) -> Result<Attack, &str> {
         match self.active_player {
             Faction::Red => {
                 if self.should_place_attack(&self.blue_attacks, &coordinates) {
@@ -189,7 +189,7 @@ impl Game {
                         }
                     };
                     self.blue_attacks.push(attack);
-                    Ok(())
+                    Ok(attack.clone())
                 } else {
                     Err("Can't place an attack there")
                 }
@@ -206,7 +206,7 @@ impl Game {
                         }
                     };
                     self.red_attacks.push(attack);
-                    Ok(())
+                    Ok(attack.clone())
                 } else {
                     Err("Can't place an attack there")
                 }
