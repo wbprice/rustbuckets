@@ -41,7 +41,6 @@ impl AlertView {
 
     pub fn render(&self, stdout: &mut RawTerminal<Stdout>) {
         // Let's assume alerts are always 3 rows tall and 48 columns wide.
-
         let label = match self.model.level {
             Level::Info => "INFO",
             Level::Success => "SUCCESS",

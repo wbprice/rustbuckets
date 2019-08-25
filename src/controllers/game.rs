@@ -6,8 +6,8 @@ use termion::raw::IntoRawMode;
 
 use crate::{
     controllers::Mode,
-    models::{Attack, Board, Coordinates, Cursor, Game, Heading, Label, Scores, Ship},
-    views::{AttackView, BoardView, CursorView, LabelView, ScoresView, ShipView},
+    models::{Attack, Board, Coordinates, Cursor, Game, Heading, Label, Scores, Ship, Level, Alert},
+    views::{AttackView, AlertView, BoardView, CursorView, LabelView, ScoresView, ShipView},
 };
 
 pub fn game_controller(game: &mut Game) {
@@ -30,16 +30,18 @@ pub fn game_controller(game: &mut Game) {
     let red_board = Board::new(game.width, game.height);
     let blue_board = Board::new(game.width, game.height);
     let mut cursor = Cursor::default();
+    let blue_instructions = Alert::new("It's time to fight!".to_string(), Level::Info);
 
     // Views
     let title_view = LabelView::new(Coordinates { x: 1, y: 1 }, title);
     let red_board_title_view = LabelView::new(Coordinates { x: 1, y: 3 }, red_board_title);
     let red_board_view = BoardView::new(Coordinates { x: 1, y: 4 }, red_board);
-    let blue_board_title_view = LabelView::new(Coordinates { x: 1, y: 22 }, blue_board_title);
-    let blue_board_view = BoardView::new(Coordinates { x: 1, y: 23 }, blue_board);
+    let blue_instructions_view = AlertView::new(Coordinates { x: 1, y: 23}, blue_instructions);
+    let blue_board_title_view = LabelView::new(Coordinates { x: 1, y: 27 }, blue_board_title);
+    let blue_board_view = BoardView::new(Coordinates { x: 1, y: 28 }, blue_board);
     let mut blue_ship_views: Vec<ShipView> = vec![];
     let mut red_team_score_view = ScoresView::new(Coordinates { x: 36, y: 0 }, game.blue_score);
-    let mut blue_team_score_view = ScoresView::new(Coordinates { x: 36, y: 19 }, game.red_score);
+    let mut blue_team_score_view = ScoresView::new(Coordinates { x: 36, y: 24 }, game.red_score);
     for ship in game.blue_ships.iter() {
         blue_ship_views.push(ShipView::new(
             Coordinates {
@@ -59,6 +61,7 @@ pub fn game_controller(game: &mut Game) {
     blue_board_view.render(&mut stdout);
     red_team_score_view.render(&mut stdout);
     blue_team_score_view.render(&mut stdout);
+    blue_instructions_view.render(&mut stdout);
     for ship_view in blue_ship_views.iter() {
         ship_view.render(&mut stdout);
     }
