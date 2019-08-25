@@ -1,3 +1,4 @@
+mod alert;
 mod attack;
 mod board;
 mod cursor;
@@ -7,6 +8,6 @@ mod ship;
 mod utils;
 
 pub use self::{
-    attack::AttackView, board::BoardView, cursor::CursorView, label::LabelView, scores::ScoresView,
-    ship::ShipView, utils::*,
+    alert::AlertView, attack::AttackView, board::BoardView, cursor::CursorView, label::LabelView,
+    scores::ScoresView, ship::ShipView, utils::*,
 };

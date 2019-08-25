@@ -1,4 +1,5 @@
 use std::io::{stdin, stdout, Write};
+use std::{thread, time};
 use termion::cursor::Goto;
 use termion::event::Key;
 use termion::input::TermRead;
@@ -6,9 +7,18 @@ use termion::raw::IntoRawMode;
 
 use crate::{
     controllers::Mode,
-    models::{Attack, Board, Coordinates, Cursor, Game, Heading, Label, Scores, Ship},
-    views::{AttackView, BoardView, CursorView, LabelView, ScoresView, ShipView},
+    models::{
+        Alert, Attack, AttackResult, Board, Coordinates, Cursor, Game, Heading, Label, Level,
+        Scores, Ship,
+    },
+    views::{AlertView, AttackView, BoardView, CursorView, LabelView, ScoresView, ShipView},
 };
+
+fn simulate_thought() {
+    // Pause for a period of time to simulate thought.
+    let duration = time::Duration::from_millis(1500);
+    thread::sleep(duration);
+}
 
 pub fn game_controller(game: &mut Game) {
     let mut stdout = stdout().into_raw_mode().unwrap();
@@ -30,16 +40,18 @@ pub fn game_controller(game: &mut Game) {
     let red_board = Board::new(game.width, game.height);
     let blue_board = Board::new(game.width, game.height);
     let mut cursor = Cursor::default();
+    let blue_instructions = Alert::new("It's time to fight!".to_string(), Level::Info);
 
     // Views
     let title_view = LabelView::new(Coordinates { x: 1, y: 1 }, title);
     let red_board_title_view = LabelView::new(Coordinates { x: 1, y: 3 }, red_board_title);
     let red_board_view = BoardView::new(Coordinates { x: 1, y: 4 }, red_board);
-    let blue_board_title_view = LabelView::new(Coordinates { x: 1, y: 22 }, blue_board_title);
-    let blue_board_view = BoardView::new(Coordinates { x: 1, y: 23 }, blue_board);
+    let mut blue_instructions_view = AlertView::new(Coordinates { x: 1, y: 23 }, blue_instructions);
+    let blue_board_title_view = LabelView::new(Coordinates { x: 1, y: 27 }, blue_board_title);
+    let blue_board_view = BoardView::new(Coordinates { x: 1, y: 28 }, blue_board);
     let mut blue_ship_views: Vec<ShipView> = vec![];
     let mut red_team_score_view = ScoresView::new(Coordinates { x: 36, y: 0 }, game.blue_score);
-    let mut blue_team_score_view = ScoresView::new(Coordinates { x: 36, y: 19 }, game.red_score);
+    let mut blue_team_score_view = ScoresView::new(Coordinates { x: 36, y: 24 }, game.red_score);
     for ship in game.blue_ships.iter() {
         blue_ship_views.push(ShipView::new(
             Coordinates {
@@ -59,6 +71,7 @@ pub fn game_controller(game: &mut Game) {
     blue_board_view.render(&mut stdout);
     red_team_score_view.render(&mut stdout);
     blue_team_score_view.render(&mut stdout);
+    blue_instructions_view.render(&mut stdout);
     for ship_view in blue_ship_views.iter() {
         ship_view.render(&mut stdout);
     }
@@ -98,10 +111,27 @@ pub fn game_controller(game: &mut Game) {
             }
             Key::Char('f') => {
                 match game.place_attack(cursor.origin) {
-                    Ok(_) => {
+                    Ok(attack) => {
+                        match attack.result {
+                            AttackResult::Hit => {
+                                blue_instructions_view = blue_instructions_view.update(Alert::new(
+                                    "That was a hit!".to_string(),
+                                    Level::Success,
+                                ));
+                            }
+                            AttackResult::Miss => {
+                                blue_instructions_view = blue_instructions_view
+                                    .update(Alert::new("You missed!".to_string(), Level::Warning));
+                            }
+                        }
+                        blue_instructions_view.render(&mut stdout);
+                        stdout.flush().unwrap();
+
                         // Attack placed.  Now it's time for the
                         // AI to retaliate.
+
                         game.toggle_active_player();
+                        simulate_thought();
 
                         loop {
                             let ai_attack_coords = game
@@ -109,12 +139,40 @@ pub fn game_controller(game: &mut Game) {
                                 .expect("Couldn't select an origin!");
 
                             match game.place_attack(ai_attack_coords) {
-                                Ok(_) => break,
+                                Ok(attack) => {
+                                    match attack.result {
+                                        AttackResult::Hit => {
+                                            blue_instructions_view =
+                                                blue_instructions_view.update(Alert::new(
+                                                    "They hit a ship!".to_string(),
+                                                    Level::Warning,
+                                                ));
+                                        }
+                                        AttackResult::Miss => {
+                                            blue_instructions_view = blue_instructions_view.update(
+                                                Alert::new("They missed!".to_string(), Level::Info),
+                                            );
+                                        }
+                                    }
+
+                                    blue_instructions_view.render(&mut stdout);
+                                    stdout.flush().unwrap();
+
+                                    break;
+                                }
                                 Err(_) => {
                                     // handle err?
                                 }
                             }
                         }
+
+                        simulate_thought();
+                        blue_instructions_view = blue_instructions_view.update(Alert::new(
+                            "Select a cell to attack!".to_string(),
+                            Level::Info,
+                        ));
+                        blue_instructions_view.render(&mut stdout);
+                        stdout.flush().unwrap();
 
                         game.toggle_active_player();
                     }
@@ -145,6 +203,7 @@ pub fn game_controller(game: &mut Game) {
         blue_board_view.render(&mut stdout);
         red_team_score_view.render(&mut stdout);
         blue_team_score_view.render(&mut stdout);
+        blue_instructions_view.render(&mut stdout);
         for ship_view in blue_ship_views.iter() {
             ship_view.render(&mut stdout);
         }
