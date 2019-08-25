@@ -162,6 +162,11 @@ pub fn game_controller(game: &mut Game) {
                                 }
                                 Err(_) => {
                                     // handle err?
+                                    blue_instructions_view = blue_instructions_view.update(
+                                        Alert::new("The AI is confused!".to_string(), Level::Error)
+                                    );
+                                    blue_instructions_view.render(&mut stdout);
+                                    stdout.flush().unwrap();
                                 }
                             }
                         }
@@ -178,7 +183,11 @@ pub fn game_controller(game: &mut Game) {
                     }
                     Err(_) => {
                         // handle err
-
+                        blue_instructions_view = blue_instructions_view.update(
+                            Alert::new("An attack can't be made there!".to_string(), Level::Warning)
+                        );
+                        blue_instructions_view.render(&mut stdout);
+                        stdout.flush().unwrap();
                     }
                 }
             }
