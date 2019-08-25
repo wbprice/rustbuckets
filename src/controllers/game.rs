@@ -3,12 +3,19 @@ use termion::cursor::Goto;
 use termion::event::Key;
 use termion::input::TermRead;
 use termion::raw::IntoRawMode;
+use std::{thread, time};
 
 use crate::{
     controllers::Mode,
     models::{Attack, AttackResult, Board, Coordinates, Cursor, Game, Heading, Label, Scores, Ship, Level, Alert},
     views::{AttackView, AlertView, BoardView, CursorView, LabelView, ScoresView, ShipView},
 };
+
+fn simulate_thought() {
+    // Pause for a period of time to simulate thought.
+    let duration = time::Duration::from_millis(1500);
+    thread::sleep(duration);
+}
 
 pub fn game_controller(game: &mut Game) {
     let mut stdout = stdout().into_raw_mode().unwrap();
@@ -116,10 +123,14 @@ pub fn game_controller(game: &mut Game) {
                                 ));
                             }
                         }
+                        blue_instructions_view.render(&mut stdout);
+                        stdout.flush().unwrap();
+
                         // Attack placed.  Now it's time for the
                         // AI to retaliate.
 
                         game.toggle_active_player();
+                        simulate_thought();
 
                         loop {
                             let ai_attack_coords = game
@@ -142,6 +153,10 @@ pub fn game_controller(game: &mut Game) {
                                             ));
                                         }
                                     }
+
+                                    blue_instructions_view.render(&mut stdout);
+                                    stdout.flush().unwrap();
+
                                     break;
                                 },
                                 Err(_) => {
@@ -149,6 +164,14 @@ pub fn game_controller(game: &mut Game) {
                                 }
                             }
                         }
+
+                        simulate_thought();
+                        blue_instructions_view = blue_instructions_view.update(Alert::new(
+                            "Select a cell to attack!".to_string(),
+                            Level::Info
+                        ));
+                        blue_instructions_view.render(&mut stdout);
+                        stdout.flush().unwrap();
 
                         game.toggle_active_player();
                     }
