@@ -421,10 +421,25 @@ mod tests {
     }
 
     #[test]
-    fn test_auto_plan_attack_empty_attacks() {
+    fn test_auto_plan_attack_should_succeed() {
+        let game = Game::default();
+        let origin = game.auto_plan_attack().unwrap();
+        assert!(origin.x >= 0);
+        assert!(origin.x <= 7);
+        assert!(origin.y >= 0);
+        assert!(origin.y <= 7);
+    }
+
+    #[test]
+    fn test_auto_plan_attack_should_fail_on_full_board() {
         let mut game = Game::default();
-        let proposed_attack_coords = game.auto_plan_attack();
-        dbg!(proposed_attack_coords);
+        game.toggle_active_player();
+        for _ in 0..64 {
+            let origin = game.auto_plan_attack().unwrap();
+            game.place_attack(origin).unwrap();
+        }
+        let result = game.auto_plan_attack();
+        assert!(result.is_err());
     }
 
     #[test]
