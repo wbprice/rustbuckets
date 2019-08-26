@@ -4,7 +4,8 @@ use crate::{
     },
     models::{Attack, AttackResult, Coordinates, Faction, Heading, Scores, Ship},
 };
-use rand::{random, thread_rng, Rng};
+use rand::{random, seq::SliceRandom, thread_rng, Rng};
+use std::{thread, time};
 
 #[derive(Debug)]
 pub struct Game {
@@ -198,12 +199,8 @@ impl Game {
                 if self.should_place_attack(&self.red_attacks, &coordinates) {
                     let attack = Attack::new(&self.red_ships, coordinates);
                     match attack.result {
-                        AttackResult::Hit => {
-                            self.increment_hits();
-                        }
-                        AttackResult::Miss => {
-                            self.increment_misses();
-                        }
+                        AttackResult::Hit => self.increment_hits(),
+                        AttackResult::Miss => self.increment_misses(),
                     };
                     self.red_attacks.push(attack);
                     Ok(attack.clone())
@@ -211,6 +208,33 @@ impl Game {
                     Err("Can't place an attack there")
                 }
             }
+        }
+    }
+
+    pub fn think() {
+        // Pause for a period of time to simulate thought.
+        let duration = time::Duration::from_millis(1500);
+        thread::sleep(duration);
+    }
+
+    pub fn auto_plan_attack(&self) -> Result <Coordinates, &str> {
+        let mut all_possible_coords: Vec<Coordinates> = vec![];
+        for x in 0..8 {
+            for y in 0..8 {
+                all_possible_coords.push(Coordinates { x, y });
+            }
+        }
+
+        let mut filtered_coords: Vec<Coordinates> = all_possible_coords
+            .into_iter()
+            .filter(|coords| self.should_place_attack(&self.blue_attacks, &coords))
+            .collect();
+
+        filtered_coords.shuffle(&mut thread_rng());
+
+        match filtered_coords.pop() {
+            Some(coords) => Ok(coords),
+            None => Err("Couldn't find an empty coordinate!")
         }
     }
 
@@ -394,6 +418,28 @@ mod tests {
                 .expect("Should have been able to place ship");
         }
         assert_eq!(game.blue_ships.len(), 5);
+    }
+
+    #[test]
+    fn test_auto_plan_attack_should_succeed() {
+        let game = Game::default();
+        let origin = game.auto_plan_attack().unwrap();
+        assert!(origin.x >= 0);
+        assert!(origin.x <= 7);
+        assert!(origin.y >= 0);
+        assert!(origin.y <= 7);
+    }
+
+    #[test]
+    fn test_auto_plan_attack_should_fail_on_full_board() {
+        let mut game = Game::default();
+        game.toggle_active_player();
+        for _ in 0..64 {
+            let origin = game.auto_plan_attack().unwrap();
+            game.place_attack(origin).unwrap();
+        }
+        let result = game.auto_plan_attack();
+        assert!(result.is_err());
     }
 
     #[test]

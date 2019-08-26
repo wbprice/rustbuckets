@@ -1,5 +1,4 @@
 use std::io::{stdin, stdout, Write};
-use std::{thread, time};
 use termion::cursor::Goto;
 use termion::event::Key;
 use termion::input::TermRead;
@@ -13,12 +12,6 @@ use crate::{
     },
     views::{AlertView, AttackView, BoardView, CursorView, LabelView, ScoresView, ShipView},
 };
-
-fn simulate_thought() {
-    // Pause for a period of time to simulate thought.
-    let duration = time::Duration::from_millis(1500);
-    thread::sleep(duration);
-}
 
 pub fn game_controller(game: &mut Game) {
     let mut stdout = stdout().into_raw_mode().unwrap();
@@ -131,12 +124,9 @@ pub fn game_controller(game: &mut Game) {
                         // AI to retaliate.
 
                         game.toggle_active_player();
-                        simulate_thought();
 
                         loop {
-                            let ai_attack_coords = game
-                                .auto_select_origin()
-                                .expect("Couldn't select an origin!");
+                            let ai_attack_coords = game.auto_plan_attack().unwrap();
 
                             match game.place_attack(ai_attack_coords) {
                                 Ok(attack) => {
@@ -162,11 +152,15 @@ pub fn game_controller(game: &mut Game) {
                                 }
                                 Err(_) => {
                                     // handle err?
+                                    blue_instructions_view = blue_instructions_view.update(
+                                        Alert::new("The AI is confused!".to_string(), Level::Error),
+                                    );
+                                    blue_instructions_view.render(&mut stdout);
+                                    stdout.flush().unwrap();
                                 }
                             }
                         }
 
-                        simulate_thought();
                         blue_instructions_view = blue_instructions_view.update(Alert::new(
                             "Select a cell to attack!".to_string(),
                             Level::Info,
@@ -178,7 +172,12 @@ pub fn game_controller(game: &mut Game) {
                     }
                     Err(_) => {
                         // handle err
-
+                        blue_instructions_view = blue_instructions_view.update(Alert::new(
+                            "An attack can't be made there!".to_string(),
+                            Level::Warning,
+                        ));
+                        blue_instructions_view.render(&mut stdout);
+                        stdout.flush().unwrap();
                     }
                 }
             }
