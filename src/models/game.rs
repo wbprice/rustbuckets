@@ -217,7 +217,7 @@ impl Game {
         thread::sleep(duration);
     }
 
-    pub fn auto_plan_attack(&self) -> Coordinates {
+    pub fn auto_plan_attack(&self) -> Result <Coordinates, &str> {
         let mut all_possible_coords: Vec<Coordinates> = vec![];
         for x in 0..8 {
             for y in 0..8 {
@@ -232,7 +232,10 @@ impl Game {
 
         filtered_coords.shuffle(&mut thread_rng());
 
-        filtered_coords[0]
+        match filtered_coords.pop() {
+            Some(coords) => Ok(coords),
+            None => Err("Couldn't find an empty coordinate!")
+        }
     }
 
     pub fn kiss_ling_ling(&self) {

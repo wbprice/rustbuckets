@@ -126,9 +126,7 @@ pub fn game_controller(game: &mut Game) {
                         game.toggle_active_player();
 
                         loop {
-                            let ai_attack_coords = game
-                                .auto_select_origin()
-                                .expect("Couldn't select an origin!");
+                            let ai_attack_coords = game.auto_plan_attack().unwrap();
 
                             match game.place_attack(ai_attack_coords) {
                                 Ok(attack) => {
