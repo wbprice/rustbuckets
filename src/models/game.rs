@@ -1,7 +1,5 @@
 use crate::{
-    controllers::{
-        endscreen_controller, game_controller, setup_controller, title_controller, Mode,
-    },
+    controllers::Mode,
     models::{Attack, AttackResult, Coordinates, Faction, Heading, Scores, Ship},
 };
 use rand::{random, seq::SliceRandom, thread_rng, Rng};
@@ -217,7 +215,7 @@ impl Game {
         thread::sleep(duration);
     }
 
-    pub fn auto_plan_attack(&self) -> Result <Coordinates, &str> {
+    pub fn auto_plan_attack(&self) -> Result<Coordinates, &str> {
         let mut all_possible_coords: Vec<Coordinates> = vec![];
         for x in 0..8 {
             for y in 0..8 {
@@ -234,7 +232,7 @@ impl Game {
 
         match filtered_coords.pop() {
             Some(coords) => Ok(coords),
-            None => Err("Couldn't find an empty coordinate!")
+            None => Err("Couldn't find an empty coordinate!"),
         }
     }
 
@@ -272,20 +270,6 @@ impl Game {
             }
         }
         false
-    }
-
-    pub fn start(&mut self) {
-        loop {
-            match &self.mode {
-                Mode::Title => title_controller(self),
-                Mode::Setup => setup_controller(self),
-                Mode::Play => game_controller(self),
-                Mode::Endscreen => endscreen_controller(self),
-                Mode::Exit => {
-                    break;
-                }
-            }
-        }
     }
 }
 
