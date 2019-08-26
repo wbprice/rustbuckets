@@ -5,7 +5,7 @@ use termion::input::TermRead;
 use termion::raw::IntoRawMode;
 
 use crate::{
-    controllers::{Ai, Mode},
+    controllers::Mode,
     models::{
         Alert, Attack, AttackResult, Board, Coordinates, Cursor, Game, Heading, Label, Level,
         Scores, Ship,
@@ -25,8 +25,6 @@ pub fn game_controller(game: &mut Game) {
         termion::cursor::Hide
     )
     .unwrap();
-    // The enemy player
-    let ai = Ai::new();
 
     // Models
     let title = Label::new("Rustbuckets 0.1.0".to_string());

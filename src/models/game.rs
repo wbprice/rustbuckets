@@ -4,7 +4,8 @@ use crate::{
     },
     models::{Attack, AttackResult, Coordinates, Faction, Heading, Scores, Ship},
 };
-use rand::{random, thread_rng, Rng};
+use rand::{random, seq::SliceRandom, thread_rng, Rng};
+use std::{thread, time};
 
 #[derive(Debug)]
 pub struct Game {
@@ -198,12 +199,8 @@ impl Game {
                 if self.should_place_attack(&self.red_attacks, &coordinates) {
                     let attack = Attack::new(&self.red_ships, coordinates);
                     match attack.result {
-                        AttackResult::Hit => {
-                            self.increment_hits();
-                        }
-                        AttackResult::Miss => {
-                            self.increment_misses();
-                        }
+                        AttackResult::Hit => self.increment_hits(),
+                        AttackResult::Miss => self.increment_misses(),
                     };
                     self.red_attacks.push(attack);
                     Ok(attack.clone())
@@ -212,6 +209,30 @@ impl Game {
                 }
             }
         }
+    }
+
+    pub fn think() {
+        // Pause for a period of time to simulate thought.
+        let duration = time::Duration::from_millis(1500);
+        thread::sleep(duration);
+    }
+
+    pub fn auto_plan_attack(&self) -> Coordinates {
+        let mut all_possible_coords: Vec<Coordinates> = vec![];
+        for x in 0..8 {
+            for y in 0..8 {
+                all_possible_coords.push(Coordinates { x, y });
+            }
+        }
+
+        let mut filtered_coords: Vec<Coordinates> = all_possible_coords
+            .into_iter()
+            .filter(|coords| self.should_place_attack(&self.blue_attacks, &coords))
+            .collect();
+
+        filtered_coords.shuffle(&mut thread_rng());
+
+        filtered_coords[0]
     }
 
     pub fn kiss_ling_ling(&self) {
@@ -394,6 +415,13 @@ mod tests {
                 .expect("Should have been able to place ship");
         }
         assert_eq!(game.blue_ships.len(), 5);
+    }
+
+    #[test]
+    fn test_auto_plan_attack_empty_attacks() {
+        let mut game = Game::default();
+        let proposed_attack_coords = game.auto_plan_attack();
+        dbg!(proposed_attack_coords);
     }
 
     #[test]
